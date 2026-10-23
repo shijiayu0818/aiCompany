@@ -1,0 +1,47 @@
+[
+  {
+    "id": "risk1",
+    "enterpriseId": "e1",
+    "type": "经营异常",
+    "level": "yellow",
+    "date": "2025-08-12",
+    "detail": "未按期公示2024年度报告",
+    "source": "市场监管总局"
+  },
+  {
+    "id": "risk2",
+    "enterpriseId": "e1",
+    "type": "行政处罚",
+    "level": "red",
+    "date": "2025-11-03",
+    "detail": "虚假宣传被罚50万元",
+    "source": "市场监督管理局"
+  },
+  {
+    "id": "risk3",
+    "enterpriseId": "e2",
+    "type": "司法风险",
+    "level": "yellow",
+    "date": "2025-06-18",
+    "detail": "涉及合同纠纷诉讼，涉案金额200万元",
+    "source": "中国裁判文书网"
+  },
+  {
+    "id": "risk4",
+    "enterpriseId": "e3",
+    "type": "股权冻结",
+    "level": "red",
+    "date": "2025-09-25",
+    "detail": "股东所持30%股权被司法冻结",
+    "source": "国家企业信用信息公示系统"
+  },
+  {
+    "id": "risk5",
+    "enterpriseId": "e5",
+    "type": "行政处罚",
+    "level": "yellow",
+    "date": "2025-07-08",
+    "detail": "环保不达标被责令整改",
+    "source": "生态环境局"
+  }
+]

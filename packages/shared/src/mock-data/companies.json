@@ -1,0 +1,62 @@
+[
+  {
+    "id": "e1",
+    "name": "星辰智能科技集团",
+    "creditCode": "91110000MA01XK7D2Y",
+    "legalPerson": "张明远",
+    "registeredCapital": "50000万元",
+    "establishDate": "2015-03-15",
+    "status": "存续",
+    "industry": "人工智能",
+    "region": "北京",
+    "description": "专注大模型与行业智能体研发的科技集团。"
+  },
+  {
+    "id": "e2",
+    "name": "云链数据科技有限公司",
+    "creditCode": "91310115MA1K3QP58X",
+    "legalPerson": "李思涵",
+    "registeredCapital": "10000万元",
+    "establishDate": "2018-07-22",
+    "status": "存续",
+    "industry": "大数据",
+    "region": "上海",
+    "description": "企业级数据中台与数据治理解决方案提供商。"
+  },
+  {
+    "id": "e3",
+    "name": "鸿图资本管理有限公司",
+    "creditCode": "91440300MA5D7K2L9M",
+    "legalPerson": "王建国",
+    "registeredCapital": "100000万元",
+    "establishDate": "2010-11-08",
+    "status": "存续",
+    "industry": "投资管理",
+    "region": "深圳",
+    "description": "聚焦科技与消费赛道的股权投资机构。"
+  },
+  {
+    "id": "e4",
+    "name": "智联云计算股份有限公司",
+    "creditCode": "91330100MA28X1QK7P",
+    "legalPerson": "陈晓东",
+    "registeredCapital": "80000万元",
+    "establishDate": "2012-05-30",
+    "status": "存续",
+    "industry": "云计算",
+    "region": "浙江杭州",
+    "description": "混合云与云原生解决方案提供商。"
+  },
+  {
+    "id": "e5",
+    "name": "绿源新能源科技有限公司",
+    "creditCode": "91510100MA6C7N8M2K",
+    "legalPerson": "刘芳芳",
+    "registeredCapital": "30000万元",
+    "establishDate": "2019-09-12",
+    "status": "存续",
+    "industry": "新能源",
+    "region": "四川成都",
+    "description": "光伏储能与新能源汽车零部件制造商。"
+  }
+]

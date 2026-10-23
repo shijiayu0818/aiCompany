@@ -1,0 +1,27 @@
+{
+  "nodes": [
+    { "id": "e1", "type": "enterprise", "name": "星辰智能科技集团", "refId": "e1", "meta": "人工智能", "detail": "北京" },
+    { "id": "p1", "type": "person", "name": "张明远" },
+    { "id": "e2", "type": "enterprise", "name": "云链数据科技有限公司", "refId": "e2", "meta": "大数据", "detail": "上海" },
+    { "id": "p2", "type": "person", "name": "李思涵" },
+    { "id": "e3", "type": "enterprise", "name": "鸿图资本管理有限公司", "refId": "e3", "meta": "投资管理", "detail": "深圳" },
+    { "id": "p3", "type": "person", "name": "王建国" },
+    { "id": "e4", "type": "enterprise", "name": "智联云计算股份有限公司", "refId": "e4", "meta": "云计算", "detail": "浙江杭州" },
+    { "id": "p4", "type": "person", "name": "陈晓东" },
+    { "id": "e5", "type": "enterprise", "name": "绿源新能源科技有限公司", "refId": "e5", "meta": "新能源", "detail": "四川成都" },
+    { "id": "p5", "type": "person", "name": "刘芳芳" }
+  ],
+  "edges": [
+    { "id": "r1", "source": "p1", "target": "e1", "type": "法定代表人", "label": "董事长", "weight": 1 },
+    { "id": "r2", "source": "p2", "target": "e2", "type": "法定代表人", "label": "CEO", "weight": 1 },
+    { "id": "r3", "source": "p3", "target": "e3", "type": "法定代表人", "label": "董事长", "weight": 1 },
+    { "id": "r4", "source": "p4", "target": "e4", "type": "法定代表人", "label": "总经理", "weight": 1 },
+    { "id": "r5", "source": "p5", "target": "e5", "type": "法定代表人", "label": "董事长", "weight": 1 },
+    { "id": "r6", "source": "e3", "target": "e1", "type": "投资", "label": "25%", "weight": 0.25 },
+    { "id": "r7", "source": "e3", "target": "e2", "type": "投资", "label": "15%", "weight": 0.15 },
+    { "id": "r8", "source": "e1", "target": "e4", "type": "投资", "label": "10%", "weight": 0.1 },
+    { "id": "r9", "source": "e1", "target": "e2", "type": "关联", "label": "战略合作", "weight": 0.3 },
+    { "id": "r10", "source": "e4", "target": "e5", "type": "投资", "label": "8%", "weight": 0.08 },
+    { "id": "r11", "source": "p1", "target": "e4", "type": "任职", "label": "董事", "weight": 0.4 }
+  ]
+}

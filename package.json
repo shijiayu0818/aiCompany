@@ -1,0 +1,22 @@
+{
+  "name": "@ai/root",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently -n web,company,graph,business -c blue,green,yellow,magenta \"pnpm --filter @ai/web dev\" \"pnpm --filter @ai/agent-company dev\" \"pnpm --filter @ai/agent-graph dev\" \"pnpm --filter @ai/agent-business dev\"",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "eval": "tsx packages/agent-eval/src/cli.ts",
+    "eval:skip-llm": "tsx packages/agent-eval/src/cli.ts --skip-llm"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3"
+  },
+  "engines": {
+    "node": ">=18.17.0",
+    "pnpm": ">=9.0.0"
+  }
+}

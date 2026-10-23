@@ -1,0 +1,72 @@
+{
+  "cases": [
+    {
+      "id": "manual-coref-1",
+      "name": "边界-指代消解：它有哪些风险",
+      "query": "它有哪些风险？",
+      "history": [
+        { "role": "user", "content": "帮我查一下星辰智能科技集团" },
+        {
+          "role": "assistant",
+          "content": "已为您查询星辰智能科技集团（北京，人工智能行业，存续）的基本信息。"
+        }
+      ],
+      "expectedAgents": {
+        "needsCompanyInfo": false,
+        "needsGraph": false,
+        "needsBusiness": true
+      },
+      "expectedRisks": ["risk1", "risk2"],
+      "injectedDecision": {
+        "taskDescription": "查询上一轮提到的星辰智能科技集团的风险信息",
+        "needsCompanyInfo": false,
+        "companyQuery": null,
+        "needsGraph": false,
+        "graphQuery": null,
+        "needsBusiness": true,
+        "businessQuery": "星辰智能科技集团的风险信息",
+        "reasoning": "评测注入决策：多轮指代已解析为企业全名，仅激活工商资料 Agent"
+      }
+    },
+    {
+      "id": "manual-vague-1",
+      "name": "边界-模糊查询：帮我查个公司",
+      "query": "帮我查个公司",
+      "expectedAgents": {
+        "needsCompanyInfo": false,
+        "needsGraph": false,
+        "needsBusiness": false
+      }
+    },
+    {
+      "id": "manual-empty-1",
+      "name": "边界-空查询",
+      "query": "",
+      "expectedAgents": {
+        "needsCompanyInfo": false,
+        "needsGraph": false,
+        "needsBusiness": false
+      }
+    },
+    {
+      "id": "manual-all-1",
+      "name": "边界-综合查询：三 Agent 全激活",
+      "query": "查一下星辰智能科技集团的基本信息、关联图谱和风险情况",
+      "expectedAgents": {
+        "needsCompanyInfo": true,
+        "needsGraph": true,
+        "needsBusiness": true
+      },
+      "expectedGraphNodes": ["e1", "p1", "e3", "e4", "e2"],
+      "expectedGraphEdges": [
+        ["p1", "e1"],
+        ["e3", "e1"],
+        ["e3", "e2"],
+        ["e1", "e4"],
+        ["e1", "e2"],
+        ["p1", "e4"]
+      ],
+      "expectedRisks": ["risk1", "risk2"]
+    }
+  ]
+}

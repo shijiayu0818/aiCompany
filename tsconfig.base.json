@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "jsx": "preserve",
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "baseUrl": ".",
+    "paths": {
+      "@ai/shared": ["packages/shared/src"],
+      "@ai/shared/*": ["packages/shared/src/*"],
+      "@ai/agent-core": ["packages/agent-core/src"],
+      "@ai/agent-core/*": ["packages/agent-core/src/*"]
+    }
+  },
+  "exclude": ["node_modules", "dist", ".next"]
+}
