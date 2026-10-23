@@ -58,5 +58,77 @@
     "industry": "新能源",
     "region": "四川成都",
     "description": "光伏储能与新能源汽车零部件制造商。"
+  },
+  {
+    "id": "e6",
+    "name": "阿里巴巴集团",
+    "creditCode": "91330100MA2ALI0001",
+    "legalPerson": "张勇",
+    "registeredCapital": "500000万元",
+    "establishDate": "1999-09-09",
+    "status": "存续",
+    "industry": "互联网",
+    "region": "浙江杭州",
+    "description": "以电子商务、云计算与数字科技为核心的科技集团。"
+  },
+  {
+    "id": "e7",
+    "name": "阿里巴巴（中国）有限公司",
+    "creditCode": "91330100MA2ALI0002",
+    "legalPerson": "张勇",
+    "registeredCapital": "10000万元",
+    "establishDate": "2007-03-26",
+    "status": "存续",
+    "industry": "互联网",
+    "region": "浙江杭州",
+    "description": "负责集团在华互联网技术与平台运营的主体公司。"
+  },
+  {
+    "id": "e8",
+    "name": "淘宝（中国）软件有限公司",
+    "creditCode": "91330100MA2ALI0003",
+    "legalPerson": "张勇",
+    "registeredCapital": "3000万元",
+    "establishDate": "2004-12-14",
+    "status": "存续",
+    "industry": "电子商务",
+    "region": "浙江杭州",
+    "description": "淘宝平台技术与运营服务提供商。"
+  },
+  {
+    "id": "e9",
+    "name": "浙江天猫网络有限公司",
+    "creditCode": "91330100MA2ALI0004",
+    "legalPerson": "张勇",
+    "registeredCapital": "1000万元",
+    "establishDate": "2011-03-24",
+    "status": "存续",
+    "industry": "电子商务",
+    "region": "浙江杭州",
+    "description": "天猫平台运营主体。"
+  },
+  {
+    "id": "e10",
+    "name": "阿里云计算有限公司",
+    "creditCode": "91330100MA2ALI0005",
+    "legalPerson": "张勇",
+    "registeredCapital": "10000万元",
+    "establishDate": "2008-04-08",
+    "status": "存续",
+    "industry": "云计算",
+    "region": "浙江杭州",
+    "description": "公有云与云原生基础设施服务提供商。"
+  },
+  {
+    "id": "e11",
+    "name": "蚂蚁科技集团股份有限公司",
+    "creditCode": "91330100MA2ALI0006",
+    "legalPerson": "井贤栋",
+    "registeredCapital": "150000万元",
+    "establishDate": "2000-10-19",
+    "status": "存续",
+    "industry": "金融科技",
+    "region": "浙江杭州",
+    "description": "数字支付与金融科技服务提供商。"
   }
 ]

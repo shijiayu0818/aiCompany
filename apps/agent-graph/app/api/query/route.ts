@@ -2,20 +2,18 @@
 // Mock 模式走 @ai/shared 的 getRelations，real 模式走 neo4jStore.getRelations
 // 返回 GraphData（{ nodes, edges }），供 Supervisor 的 graph-builder 直接解析合并
 import { NextRequest, NextResponse } from 'next/server';
-import { getRelations, neo4jStore, qichachaClient } from '@ai/shared';
+import { getRelations, matchEnterpriseByQuery, neo4jStore, qichachaClient } from '@ai/shared';
 import type { AgentQueryRequest, AgentQueryResponse, GraphData } from '@ai/shared';
 
 /**
  * 从查询文本解析目标企业 ID
- * 优先级：enterpriseId 指定 > 企业全名包含于查询文本 > 未匹配（返回全量图谱）
+ * 优先级：enterpriseId 指定 > 企业名匹配（全称/简称）
+ * 未匹配到企业时返回 undefined，由调用方明确报错，禁止回退全量图谱
  */
 async function resolveEnterpriseId(query: string, enterpriseId?: string): Promise<string | undefined> {
   if (enterpriseId) return enterpriseId;
   const all = await qichachaClient.searchEnterprise('');
-  const matched =
-    all.find((c) => query.includes(c.name)) ??
-    all.find((c) => c.name.includes(query) || c.creditCode.includes(query));
-  return matched?.id;
+  return matchEnterpriseByQuery(query, all)?.id;
 }
 
 export async function POST(req: NextRequest) {
@@ -30,6 +28,12 @@ export async function POST(req: NextRequest) {
     }
 
     const targetId = await resolveEnterpriseId(query, body.enterpriseId);
+    if (!targetId) {
+      return NextResponse.json<AgentQueryResponse>({
+        success: false,
+        error: `未找到匹配企业: ${query}`,
+      });
+    }
 
     let graphData: GraphData;
     if (process.env.DATA_SOURCE === 'real') {

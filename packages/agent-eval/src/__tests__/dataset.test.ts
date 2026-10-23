@@ -1,13 +1,14 @@
 import { describe, expect, it } from 'vitest';
+import { mockCompanies } from '@ai/shared';
 import { expectedGraphFor, loadDataset } from '../dataset/dataset';
 
 describe('loadDataset', () => {
   const dataset = loadDataset();
 
-  it('生成 5 家企业 × 3 类用例 + 4 条手工边界用例', () => {
-    expect(dataset.cases).toHaveLength(19);
+  it('为每家企业生成 3 类用例 + 4 条手工边界用例', () => {
+    expect(dataset.cases).toHaveLength(mockCompanies.length * 3 + 4);
     const generated = dataset.cases.filter((c) => c.id.startsWith('mock-'));
-    expect(generated).toHaveLength(15);
+    expect(generated).toHaveLength(mockCompanies.length * 3);
     const manual = dataset.cases.filter((c) => c.id.startsWith('manual-'));
     expect(manual).toHaveLength(4);
   });

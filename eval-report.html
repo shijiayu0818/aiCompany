@@ -52,10 +52,10 @@
 <body>
 <div class="container">
   <h1>企业智能助手 Agent 评测报告 <span class="badge badge-skip-llm">skip-llm 注入</span><span class="gate ok">门禁通过</span></h1>
-  <div class="meta">生成时间：2026-10-21T13:48:44.343Z ｜ 用例总数：19 ｜ 总耗时：324ms</div>
+  <div class="meta">生成时间：2026-10-23T13:32:50.955Z ｜ 用例总数：37 ｜ 总耗时：1533ms</div>
 
   <div class="cards">
-    <div class="card"><div class="card-label">决策准确率</div><div class="card-value">100.0%</div><div class="card-sub">通过 19/19（阈值 80%）</div></div>
+    <div class="card"><div class="card-label">决策准确率</div><div class="card-value">100.0%</div><div class="card-sub">通过 37/37（阈值 80%）</div></div>
     <div class="card"><div class="card-label">节点命中率</div><div class="card-value">100.0%</div><div class="card-sub">阈值 70%</div></div>
     <div class="card"><div class="card-label">边命中率</div><div class="card-value">100.0%</div></div>
     <div class="card"><div class="card-label">风险匹配率</div><div class="card-value">100.0%</div></div>
@@ -98,11 +98,53 @@
     <td><strong>5</strong> / 100</td>
     <td>1 <span class="dim">(红0×3 + 黄1×1，封顶70)</span></td>
     <td>4 <span class="dim">(2条×2，封顶30)</span></td>
+  </tr>
+<tr>
+    <td>阿里巴巴集团</td>
+    <td><span class="grade grade-A">A</span></td>
+    <td><strong>8</strong> / 100</td>
+    <td>0 <span class="dim">(红0×3 + 黄0×1，封顶70)</span></td>
+    <td>8 <span class="dim">(4条×2，封顶30)</span></td>
+  </tr>
+<tr>
+    <td>阿里巴巴（中国）有限公司</td>
+    <td><span class="grade grade-A">A</span></td>
+    <td><strong>7</strong> / 100</td>
+    <td>1 <span class="dim">(红0×3 + 黄1×1，封顶70)</span></td>
+    <td>6 <span class="dim">(3条×2，封顶30)</span></td>
+  </tr>
+<tr>
+    <td>淘宝（中国）软件有限公司</td>
+    <td><span class="grade grade-A">A</span></td>
+    <td><strong>7</strong> / 100</td>
+    <td>1 <span class="dim">(红0×3 + 黄1×1，封顶70)</span></td>
+    <td>6 <span class="dim">(3条×2，封顶30)</span></td>
+  </tr>
+<tr>
+    <td>蚂蚁科技集团股份有限公司</td>
+    <td><span class="grade grade-A">A</span></td>
+    <td><strong>4</strong> / 100</td>
+    <td>0 <span class="dim">(红0×3 + 黄0×1，封顶70)</span></td>
+    <td>4 <span class="dim">(2条×2，封顶30)</span></td>
+  </tr>
+<tr>
+    <td>阿里云计算有限公司</td>
+    <td><span class="grade grade-A">A</span></td>
+    <td><strong>4</strong> / 100</td>
+    <td>0 <span class="dim">(红0×3 + 黄0×1，封顶70)</span></td>
+    <td>4 <span class="dim">(2条×2，封顶30)</span></td>
+  </tr>
+<tr>
+    <td>浙江天猫网络有限公司</td>
+    <td><span class="grade grade-A">A</span></td>
+    <td><strong>4</strong> / 100</td>
+    <td>0 <span class="dim">(红0×3 + 黄0×1，封顶70)</span></td>
+    <td>4 <span class="dim">(2条×2，封顶30)</span></td>
   </tr></tbody>
   </table>
   <p class="note">评分规则：综合分 = 风险分项（红 3/条、黄 1/条，封顶 70）+ 图谱关联度（每条关联边 2 分，封顶 30）。等级：A 0-24 低风险 / B 25-49 关注 / C 50-74 较高风险 / D 75-100 高风险。</p>
 
-  <h2>用例明细（19 条）</h2>
+  <h2>用例明细（37 条）</h2>
   <table>
     <thead><tr><th>用例</th><th>查询</th><th>决策（企业/图谱/风险）</th><th>结果</th><th>节点命中</th><th>边命中</th><th>风险匹配</th><th>耗时</th><th>决策理由</th><th>错误</th></tr></thead>
     <tbody><tr>
@@ -113,7 +155,7 @@
     <td>100.0%</td>
     <td>100.0%</td>
     <td>100.0%</td>
-    <td>56ms</td>
+    <td>535ms</td>
     <td class="reason" title="评测注入决策（skip-llm 模式自动合成）">评测注入决策（skip-llm 模式自动合成）</td>
     <td></td>
   </tr>
@@ -125,7 +167,7 @@
     <td>100.0%</td>
     <td>100.0%</td>
     <td>100.0%</td>
-    <td>37ms</td>
+    <td>154ms</td>
     <td class="reason" title="评测注入决策（skip-llm 模式自动合成）">评测注入决策（skip-llm 模式自动合成）</td>
     <td></td>
   </tr>
@@ -137,7 +179,7 @@
     <td>100.0%</td>
     <td>100.0%</td>
     <td>100.0%</td>
-    <td>31ms</td>
+    <td>115ms</td>
     <td class="reason" title="评测注入决策（skip-llm 模式自动合成）">评测注入决策（skip-llm 模式自动合成）</td>
     <td></td>
   </tr>
@@ -149,7 +191,7 @@
     <td>100.0%</td>
     <td>100.0%</td>
     <td>100.0%</td>
-    <td>14ms</td>
+    <td>30ms</td>
     <td class="reason" title="评测注入决策（skip-llm 模式自动合成）">评测注入决策（skip-llm 模式自动合成）</td>
     <td></td>
   </tr>
@@ -161,7 +203,7 @@
     <td>100.0%</td>
     <td>100.0%</td>
     <td>100.0%</td>
-    <td>14ms</td>
+    <td>22ms</td>
     <td class="reason" title="评测注入决策（skip-llm 模式自动合成）">评测注入决策（skip-llm 模式自动合成）</td>
     <td></td>
   </tr>
@@ -173,7 +215,7 @@
     <td>100.0%</td>
     <td>100.0%</td>
     <td>100.0%</td>
-    <td>14ms</td>
+    <td>35ms</td>
     <td class="reason" title="评测注入决策（skip-llm 模式自动合成）">评测注入决策（skip-llm 模式自动合成）</td>
     <td></td>
   </tr>
@@ -185,7 +227,7 @@
     <td>100.0%</td>
     <td>100.0%</td>
     <td>100.0%</td>
-    <td>11ms</td>
+    <td>12ms</td>
     <td class="reason" title="评测注入决策（skip-llm 模式自动合成）">评测注入决策（skip-llm 模式自动合成）</td>
     <td></td>
   </tr>
@@ -197,7 +239,7 @@
     <td>100.0%</td>
     <td>100.0%</td>
     <td>100.0%</td>
-    <td>11ms</td>
+    <td>13ms</td>
     <td class="reason" title="评测注入决策（skip-llm 模式自动合成）">评测注入决策（skip-llm 模式自动合成）</td>
     <td></td>
   </tr>
@@ -209,7 +251,7 @@
     <td>100.0%</td>
     <td>100.0%</td>
     <td>100.0%</td>
-    <td>14ms</td>
+    <td>29ms</td>
     <td class="reason" title="评测注入决策（skip-llm 模式自动合成）">评测注入决策（skip-llm 模式自动合成）</td>
     <td></td>
   </tr>
@@ -221,7 +263,7 @@
     <td>100.0%</td>
     <td>100.0%</td>
     <td>100.0%</td>
-    <td>11ms</td>
+    <td>27ms</td>
     <td class="reason" title="评测注入决策（skip-llm 模式自动合成）">评测注入决策（skip-llm 模式自动合成）</td>
     <td></td>
   </tr>
@@ -233,7 +275,7 @@
     <td>100.0%</td>
     <td>100.0%</td>
     <td>100.0%</td>
-    <td>12ms</td>
+    <td>26ms</td>
     <td class="reason" title="评测注入决策（skip-llm 模式自动合成）">评测注入决策（skip-llm 模式自动合成）</td>
     <td></td>
   </tr>
@@ -245,7 +287,7 @@
     <td>100.0%</td>
     <td>100.0%</td>
     <td>100.0%</td>
-    <td>13ms</td>
+    <td>27ms</td>
     <td class="reason" title="评测注入决策（skip-llm 模式自动合成）">评测注入决策（skip-llm 模式自动合成）</td>
     <td></td>
   </tr>
@@ -257,7 +299,7 @@
     <td>100.0%</td>
     <td>100.0%</td>
     <td>100.0%</td>
-    <td>13ms</td>
+    <td>28ms</td>
     <td class="reason" title="评测注入决策（skip-llm 模式自动合成）">评测注入决策（skip-llm 模式自动合成）</td>
     <td></td>
   </tr>
@@ -269,7 +311,7 @@
     <td>100.0%</td>
     <td>100.0%</td>
     <td>100.0%</td>
-    <td>12ms</td>
+    <td>29ms</td>
     <td class="reason" title="评测注入决策（skip-llm 模式自动合成）">评测注入决策（skip-llm 模式自动合成）</td>
     <td></td>
   </tr>
@@ -281,7 +323,223 @@
     <td>100.0%</td>
     <td>100.0%</td>
     <td>100.0%</td>
+    <td>15ms</td>
+    <td class="reason" title="评测注入决策（skip-llm 模式自动合成）">评测注入决策（skip-llm 模式自动合成）</td>
+    <td></td>
+  </tr>
+<tr>
+    <td><div class="case-id">mock-e6-company</div><div class="case-name">基本信息-阿里巴巴集团</div></td>
+    <td class="query">查一下阿里巴巴集团的基本信息</td>
+    <td class="agents"><span class="mark on">✓</span> 企业<span class="mark off">—</span> 图谱<span class="mark off">—</span> 风险</td>
+    <td><span class="status ok">通过</span></td>
+    <td>100.0%</td>
+    <td>100.0%</td>
+    <td>100.0%</td>
+    <td>18ms</td>
+    <td class="reason" title="评测注入决策（skip-llm 模式自动合成）">评测注入决策（skip-llm 模式自动合成）</td>
+    <td></td>
+  </tr>
+<tr>
+    <td><div class="case-id">mock-e6-graph</div><div class="case-name">关联图谱-阿里巴巴集团</div></td>
+    <td class="query">阿里巴巴集团的股权结构和关联企业有哪些</td>
+    <td class="agents"><span class="mark off">—</span> 企业<span class="mark on">✓</span> 图谱<span class="mark off">—</span> 风险</td>
+    <td><span class="status ok">通过</span></td>
+    <td>100.0%</td>
+    <td>100.0%</td>
+    <td>100.0%</td>
+    <td>20ms</td>
+    <td class="reason" title="评测注入决策（skip-llm 模式自动合成）">评测注入决策（skip-llm 模式自动合成）</td>
+    <td></td>
+  </tr>
+<tr>
+    <td><div class="case-id">mock-e6-business</div><div class="case-name">风险查询-阿里巴巴集团</div></td>
+    <td class="query">阿里巴巴集团有什么风险</td>
+    <td class="agents"><span class="mark off">—</span> 企业<span class="mark off">—</span> 图谱<span class="mark on">✓</span> 风险</td>
+    <td><span class="status ok">通过</span></td>
+    <td>100.0%</td>
+    <td>100.0%</td>
+    <td>100.0%</td>
+    <td>28ms</td>
+    <td class="reason" title="评测注入决策（skip-llm 模式自动合成）">评测注入决策（skip-llm 模式自动合成）</td>
+    <td></td>
+  </tr>
+<tr>
+    <td><div class="case-id">mock-e7-company</div><div class="case-name">基本信息-阿里巴巴（中国）有限公司</div></td>
+    <td class="query">查一下阿里巴巴（中国）有限公司的基本信息</td>
+    <td class="agents"><span class="mark on">✓</span> 企业<span class="mark off">—</span> 图谱<span class="mark off">—</span> 风险</td>
+    <td><span class="status ok">通过</span></td>
+    <td>100.0%</td>
+    <td>100.0%</td>
+    <td>100.0%</td>
+    <td>8ms</td>
+    <td class="reason" title="评测注入决策（skip-llm 模式自动合成）">评测注入决策（skip-llm 模式自动合成）</td>
+    <td></td>
+  </tr>
+<tr>
+    <td><div class="case-id">mock-e7-graph</div><div class="case-name">关联图谱-阿里巴巴（中国）有限公司</div></td>
+    <td class="query">阿里巴巴（中国）有限公司的股权结构和关联企业有哪些</td>
+    <td class="agents"><span class="mark off">—</span> 企业<span class="mark on">✓</span> 图谱<span class="mark off">—</span> 风险</td>
+    <td><span class="status ok">通过</span></td>
+    <td>100.0%</td>
+    <td>100.0%</td>
+    <td>100.0%</td>
+    <td>11ms</td>
+    <td class="reason" title="评测注入决策（skip-llm 模式自动合成）">评测注入决策（skip-llm 模式自动合成）</td>
+    <td></td>
+  </tr>
+<tr>
+    <td><div class="case-id">mock-e7-business</div><div class="case-name">风险查询-阿里巴巴（中国）有限公司</div></td>
+    <td class="query">阿里巴巴（中国）有限公司有什么风险</td>
+    <td class="agents"><span class="mark off">—</span> 企业<span class="mark off">—</span> 图谱<span class="mark on">✓</span> 风险</td>
+    <td><span class="status ok">通过</span></td>
+    <td>100.0%</td>
+    <td>100.0%</td>
+    <td>100.0%</td>
+    <td>34ms</td>
+    <td class="reason" title="评测注入决策（skip-llm 模式自动合成）">评测注入决策（skip-llm 模式自动合成）</td>
+    <td></td>
+  </tr>
+<tr>
+    <td><div class="case-id">mock-e8-company</div><div class="case-name">基本信息-淘宝（中国）软件有限公司</div></td>
+    <td class="query">查一下淘宝（中国）软件有限公司的基本信息</td>
+    <td class="agents"><span class="mark on">✓</span> 企业<span class="mark off">—</span> 图谱<span class="mark off">—</span> 风险</td>
+    <td><span class="status ok">通过</span></td>
+    <td>100.0%</td>
+    <td>100.0%</td>
+    <td>100.0%</td>
+    <td>19ms</td>
+    <td class="reason" title="评测注入决策（skip-llm 模式自动合成）">评测注入决策（skip-llm 模式自动合成）</td>
+    <td></td>
+  </tr>
+<tr>
+    <td><div class="case-id">mock-e8-graph</div><div class="case-name">关联图谱-淘宝（中国）软件有限公司</div></td>
+    <td class="query">淘宝（中国）软件有限公司的股权结构和关联企业有哪些</td>
+    <td class="agents"><span class="mark off">—</span> 企业<span class="mark on">✓</span> 图谱<span class="mark off">—</span> 风险</td>
+    <td><span class="status ok">通过</span></td>
+    <td>100.0%</td>
+    <td>100.0%</td>
+    <td>100.0%</td>
+    <td>38ms</td>
+    <td class="reason" title="评测注入决策（skip-llm 模式自动合成）">评测注入决策（skip-llm 模式自动合成）</td>
+    <td></td>
+  </tr>
+<tr>
+    <td><div class="case-id">mock-e8-business</div><div class="case-name">风险查询-淘宝（中国）软件有限公司</div></td>
+    <td class="query">淘宝（中国）软件有限公司有什么风险</td>
+    <td class="agents"><span class="mark off">—</span> 企业<span class="mark off">—</span> 图谱<span class="mark on">✓</span> 风险</td>
+    <td><span class="status ok">通过</span></td>
+    <td>100.0%</td>
+    <td>100.0%</td>
+    <td>100.0%</td>
+    <td>36ms</td>
+    <td class="reason" title="评测注入决策（skip-llm 模式自动合成）">评测注入决策（skip-llm 模式自动合成）</td>
+    <td></td>
+  </tr>
+<tr>
+    <td><div class="case-id">mock-e9-company</div><div class="case-name">基本信息-浙江天猫网络有限公司</div></td>
+    <td class="query">查一下浙江天猫网络有限公司的基本信息</td>
+    <td class="agents"><span class="mark on">✓</span> 企业<span class="mark off">—</span> 图谱<span class="mark off">—</span> 风险</td>
+    <td><span class="status ok">通过</span></td>
+    <td>100.0%</td>
+    <td>100.0%</td>
+    <td>100.0%</td>
+    <td>24ms</td>
+    <td class="reason" title="评测注入决策（skip-llm 模式自动合成）">评测注入决策（skip-llm 模式自动合成）</td>
+    <td></td>
+  </tr>
+<tr>
+    <td><div class="case-id">mock-e9-graph</div><div class="case-name">关联图谱-浙江天猫网络有限公司</div></td>
+    <td class="query">浙江天猫网络有限公司的股权结构和关联企业有哪些</td>
+    <td class="agents"><span class="mark off">—</span> 企业<span class="mark on">✓</span> 图谱<span class="mark off">—</span> 风险</td>
+    <td><span class="status ok">通过</span></td>
+    <td>100.0%</td>
+    <td>100.0%</td>
+    <td>100.0%</td>
+    <td>22ms</td>
+    <td class="reason" title="评测注入决策（skip-llm 模式自动合成）">评测注入决策（skip-llm 模式自动合成）</td>
+    <td></td>
+  </tr>
+<tr>
+    <td><div class="case-id">mock-e9-business</div><div class="case-name">风险查询-浙江天猫网络有限公司</div></td>
+    <td class="query">浙江天猫网络有限公司有什么风险</td>
+    <td class="agents"><span class="mark off">—</span> 企业<span class="mark off">—</span> 图谱<span class="mark on">✓</span> 风险</td>
+    <td><span class="status ok">通过</span></td>
+    <td>100.0%</td>
+    <td>100.0%</td>
+    <td>100.0%</td>
+    <td>17ms</td>
+    <td class="reason" title="评测注入决策（skip-llm 模式自动合成）">评测注入决策（skip-llm 模式自动合成）</td>
+    <td></td>
+  </tr>
+<tr>
+    <td><div class="case-id">mock-e10-company</div><div class="case-name">基本信息-阿里云计算有限公司</div></td>
+    <td class="query">查一下阿里云计算有限公司的基本信息</td>
+    <td class="agents"><span class="mark on">✓</span> 企业<span class="mark off">—</span> 图谱<span class="mark off">—</span> 风险</td>
+    <td><span class="status ok">通过</span></td>
+    <td>100.0%</td>
+    <td>100.0%</td>
+    <td>100.0%</td>
     <td>13ms</td>
+    <td class="reason" title="评测注入决策（skip-llm 模式自动合成）">评测注入决策（skip-llm 模式自动合成）</td>
+    <td></td>
+  </tr>
+<tr>
+    <td><div class="case-id">mock-e10-graph</div><div class="case-name">关联图谱-阿里云计算有限公司</div></td>
+    <td class="query">阿里云计算有限公司的股权结构和关联企业有哪些</td>
+    <td class="agents"><span class="mark off">—</span> 企业<span class="mark on">✓</span> 图谱<span class="mark off">—</span> 风险</td>
+    <td><span class="status ok">通过</span></td>
+    <td>100.0%</td>
+    <td>100.0%</td>
+    <td>100.0%</td>
+    <td>16ms</td>
+    <td class="reason" title="评测注入决策（skip-llm 模式自动合成）">评测注入决策（skip-llm 模式自动合成）</td>
+    <td></td>
+  </tr>
+<tr>
+    <td><div class="case-id">mock-e10-business</div><div class="case-name">风险查询-阿里云计算有限公司</div></td>
+    <td class="query">阿里云计算有限公司有什么风险</td>
+    <td class="agents"><span class="mark off">—</span> 企业<span class="mark off">—</span> 图谱<span class="mark on">✓</span> 风险</td>
+    <td><span class="status ok">通过</span></td>
+    <td>100.0%</td>
+    <td>100.0%</td>
+    <td>100.0%</td>
+    <td>11ms</td>
+    <td class="reason" title="评测注入决策（skip-llm 模式自动合成）">评测注入决策（skip-llm 模式自动合成）</td>
+    <td></td>
+  </tr>
+<tr>
+    <td><div class="case-id">mock-e11-company</div><div class="case-name">基本信息-蚂蚁科技集团股份有限公司</div></td>
+    <td class="query">查一下蚂蚁科技集团股份有限公司的基本信息</td>
+    <td class="agents"><span class="mark on">✓</span> 企业<span class="mark off">—</span> 图谱<span class="mark off">—</span> 风险</td>
+    <td><span class="status ok">通过</span></td>
+    <td>100.0%</td>
+    <td>100.0%</td>
+    <td>100.0%</td>
+    <td>11ms</td>
+    <td class="reason" title="评测注入决策（skip-llm 模式自动合成）">评测注入决策（skip-llm 模式自动合成）</td>
+    <td></td>
+  </tr>
+<tr>
+    <td><div class="case-id">mock-e11-graph</div><div class="case-name">关联图谱-蚂蚁科技集团股份有限公司</div></td>
+    <td class="query">蚂蚁科技集团股份有限公司的股权结构和关联企业有哪些</td>
+    <td class="agents"><span class="mark off">—</span> 企业<span class="mark on">✓</span> 图谱<span class="mark off">—</span> 风险</td>
+    <td><span class="status ok">通过</span></td>
+    <td>100.0%</td>
+    <td>100.0%</td>
+    <td>100.0%</td>
+    <td>9ms</td>
+    <td class="reason" title="评测注入决策（skip-llm 模式自动合成）">评测注入决策（skip-llm 模式自动合成）</td>
+    <td></td>
+  </tr>
+<tr>
+    <td><div class="case-id">mock-e11-business</div><div class="case-name">风险查询-蚂蚁科技集团股份有限公司</div></td>
+    <td class="query">蚂蚁科技集团股份有限公司有什么风险</td>
+    <td class="agents"><span class="mark off">—</span> 企业<span class="mark off">—</span> 图谱<span class="mark on">✓</span> 风险</td>
+    <td><span class="status ok">通过</span></td>
+    <td>100.0%</td>
+    <td>100.0%</td>
+    <td>100.0%</td>
+    <td>19ms</td>
     <td class="reason" title="评测注入决策（skip-llm 模式自动合成）">评测注入决策（skip-llm 模式自动合成）</td>
     <td></td>
   </tr>
@@ -293,7 +551,7 @@
     <td>100.0%</td>
     <td>100.0%</td>
     <td>100.0%</td>
-    <td>11ms</td>
+    <td>22ms</td>
     <td class="reason" title="评测注入决策：多轮指代已解析为企业全名，仅激活工商资料 Agent">评测注入决策：多轮指代已解析为企业全名，仅激活工商资料 Agent</td>
     <td></td>
   </tr>
@@ -317,7 +575,7 @@
     <td>100.0%</td>
     <td>100.0%</td>
     <td>100.0%</td>
-    <td>1ms</td>
+    <td>0ms</td>
     <td class="reason" title="评测注入决策（skip-llm 模式自动合成）">评测注入决策（skip-llm 模式自动合成）</td>
     <td></td>
   </tr>
@@ -329,7 +587,7 @@
     <td>100.0%</td>
     <td>100.0%</td>
     <td>100.0%</td>
-    <td>35ms</td>
+    <td>59ms</td>
     <td class="reason" title="评测注入决策（skip-llm 模式自动合成）">评测注入决策（skip-llm 模式自动合成）</td>
     <td></td>
   </tr></tbody>

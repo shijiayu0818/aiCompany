@@ -44,11 +44,17 @@ export function GraphView({ data, onNodeClick }: GraphViewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const graphRef = useRef<G6Graph | null>(null);
   const callbackRef = useRef(onNodeClick);
+  // 初始化是异步的，期间数据可能已到达，用 ref 保证初始化时使用最新数据
+  const dataRef = useRef(data);
 
   // 保持回调引用最新（避免重建图实例）
   useEffect(() => {
     callbackRef.current = onNodeClick;
   });
+
+  useEffect(() => {
+    dataRef.current = data;
+  }, [data]);
 
   // 初始化图实例（仅挂载时）
   useEffect(() => {
@@ -67,7 +73,7 @@ export function GraphView({ data, onNodeClick }: GraphViewProps) {
         width: container.clientWidth || 600,
         height: container.clientHeight || 400,
         autoFit: 'view',
-        data: data ? transformData(data) : { nodes: [], edges: [] },
+        data: dataRef.current ? transformData(dataRef.current) : { nodes: [], edges: [] },
         node: {
           type: 'circle',
           style: (d: NodeData) => {
@@ -128,36 +134,39 @@ export function GraphView({ data, onNodeClick }: GraphViewProps) {
   }, []);
 
   // 数据更新（增量渲染）
+  // 初始化完成前的数据由 dataRef 在创建实例时读取，这里只处理实例已存在的情况
   useEffect(() => {
     if (!graphRef.current || !data) return;
     graphRef.current.setData(transformData(data));
     void graphRef.current.render();
   }, [data]);
 
-  // 空状态
-  if (!data || data.nodes.length === 0) {
-    return (
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          height: '100%',
-          fontSize: 'var(--font-sm)',
-          color: 'var(--color-text-tertiary)',
-        }}
-        aria-label="图谱区域（暂无数据）"
-      >
-        输入查询后，企业关联关系图谱将在此展示
-      </div>
-    );
-  }
+  const empty = !data || data.nodes.length === 0;
 
   return (
-    <div
-      ref={containerRef}
-      style={{ width: '100%', height: '100%' }}
-      aria-label="企业关联关系图谱"
-    />
+    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+      <div
+        ref={containerRef}
+        style={{ width: '100%', height: '100%' }}
+        aria-label="企业关联关系图谱"
+      />
+      {empty && (
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: 'var(--font-sm)',
+            color: 'var(--color-text-tertiary)',
+            pointerEvents: 'none',
+          }}
+          aria-label="图谱区域（暂无数据）"
+        >
+          输入查询后，企业关联关系图谱将在此展示
+        </div>
+      )}
+    </div>
   );
 }

@@ -2,7 +2,7 @@
 // 调用 @ai/shared 的 qichachaClient.searchEnterprise 检索企业基本信息
 // Mock/real 由 DATA_SOURCE 环境变量切换（在 qichachaClient 内部处理）
 import { NextRequest, NextResponse } from 'next/server';
-import { qichachaClient } from '@ai/shared';
+import { matchEnterpriseByQuery, qichachaClient } from '@ai/shared';
 import type { AgentQueryRequest, AgentQueryResponse, Enterprise } from '@ai/shared';
 
 /**
@@ -20,7 +20,7 @@ async function resolveEnterprise(query: string, enterpriseId?: string): Promise<
     return matched.find((c) => c.name === query) ?? matched[0];
   }
   const all = await qichachaClient.searchEnterprise('');
-  return all.find((c) => query.includes(c.name)) ?? null;
+  return matchEnterpriseByQuery(query, all) ?? null;
 }
 
 export async function POST(req: NextRequest) {

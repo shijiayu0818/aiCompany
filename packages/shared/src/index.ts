@@ -28,6 +28,9 @@ export {
   getRisksByEnterprise,
 } from './mock-data';
 
+// ===== 企业名匹配 =====
+export { matchEnterpriseByQuery } from './enterprise-match';
+
 // ===== 向量库 =====
 export { createVectorStore } from './vector-store';
 export type { VectorStore } from './vector-store';

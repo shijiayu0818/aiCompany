@@ -91,7 +91,7 @@ function normalizeManualCases(cases: EvalCase[]): EvalCase[] {
 }
 
 /**
- * 加载完整评测数据集：mock 自动生成（5 家企业 × 3 类用例）+ 手工边界用例
+ * 加载完整评测数据集：mock 自动生成（每家企业 × 3 类用例）+ 手工边界用例
  */
 export function loadDataset(): EvalDataset {
   const generatedCases = mockCompanies.flatMap((c) =>

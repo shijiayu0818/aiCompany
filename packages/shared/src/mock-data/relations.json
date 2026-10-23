@@ -9,7 +9,15 @@
     { "id": "e4", "type": "enterprise", "name": "智联云计算股份有限公司", "refId": "e4", "meta": "云计算", "detail": "浙江杭州" },
     { "id": "p4", "type": "person", "name": "陈晓东" },
     { "id": "e5", "type": "enterprise", "name": "绿源新能源科技有限公司", "refId": "e5", "meta": "新能源", "detail": "四川成都" },
-    { "id": "p5", "type": "person", "name": "刘芳芳" }
+    { "id": "p5", "type": "person", "name": "刘芳芳" },
+    { "id": "e6", "type": "enterprise", "name": "阿里巴巴集团", "refId": "e6", "meta": "互联网", "detail": "浙江杭州" },
+    { "id": "e7", "type": "enterprise", "name": "阿里巴巴（中国）有限公司", "refId": "e7", "meta": "互联网", "detail": "浙江杭州" },
+    { "id": "e8", "type": "enterprise", "name": "淘宝（中国）软件有限公司", "refId": "e8", "meta": "电子商务", "detail": "浙江杭州" },
+    { "id": "e9", "type": "enterprise", "name": "浙江天猫网络有限公司", "refId": "e9", "meta": "电子商务", "detail": "浙江杭州" },
+    { "id": "e10", "type": "enterprise", "name": "阿里云计算有限公司", "refId": "e10", "meta": "云计算", "detail": "浙江杭州" },
+    { "id": "e11", "type": "enterprise", "name": "蚂蚁科技集团股份有限公司", "refId": "e11", "meta": "金融科技", "detail": "浙江杭州" },
+    { "id": "p6", "type": "person", "name": "张勇" },
+    { "id": "p7", "type": "person", "name": "井贤栋" }
   ],
   "edges": [
     { "id": "r1", "source": "p1", "target": "e1", "type": "法定代表人", "label": "董事长", "weight": 1 },
@@ -22,6 +30,17 @@
     { "id": "r8", "source": "e1", "target": "e4", "type": "投资", "label": "10%", "weight": 0.1 },
     { "id": "r9", "source": "e1", "target": "e2", "type": "关联", "label": "战略合作", "weight": 0.3 },
     { "id": "r10", "source": "e4", "target": "e5", "type": "投资", "label": "8%", "weight": 0.08 },
-    { "id": "r11", "source": "p1", "target": "e4", "type": "任职", "label": "董事", "weight": 0.4 }
+    { "id": "r11", "source": "p1", "target": "e4", "type": "任职", "label": "董事", "weight": 0.4 },
+    { "id": "r12", "source": "p6", "target": "e6", "type": "法定代表人", "label": "董事长", "weight": 1 },
+    { "id": "r13", "source": "p6", "target": "e7", "type": "法定代表人", "label": "执行董事", "weight": 1 },
+    { "id": "r14", "source": "p6", "target": "e8", "type": "任职", "label": "董事", "weight": 0.4 },
+    { "id": "r15", "source": "p6", "target": "e9", "type": "法定代表人", "label": "董事长", "weight": 1 },
+    { "id": "r16", "source": "p6", "target": "e10", "type": "任职", "label": "董事", "weight": 0.4 },
+    { "id": "r17", "source": "p7", "target": "e11", "type": "法定代表人", "label": "董事长", "weight": 1 },
+    { "id": "r18", "source": "e6", "target": "e7", "type": "投资", "label": "100%", "weight": 1 },
+    { "id": "r19", "source": "e6", "target": "e8", "type": "投资", "label": "100%", "weight": 1 },
+    { "id": "r20", "source": "e8", "target": "e9", "type": "投资", "label": "100%", "weight": 1 },
+    { "id": "r21", "source": "e7", "target": "e10", "type": "投资", "label": "100%", "weight": 1 },
+    { "id": "r22", "source": "e6", "target": "e11", "type": "关联", "label": "战略协同", "weight": 0.3 }
   ]
 }

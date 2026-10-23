@@ -2,7 +2,7 @@
 // 调用 qichachaClient.getRiskInfo 获取结构化风险 + 向量库语义检索工商资料
 // 返回 RiskItem 数组（graph-builder 按数组统计各企业风险数）
 import { NextRequest, NextResponse } from 'next/server';
-import { createVectorStore, qichachaClient } from '@ai/shared';
+import { createVectorStore, matchEnterpriseByQuery, qichachaClient } from '@ai/shared';
 import type { AgentQueryRequest, AgentQueryResponse, RiskItem, VectorDoc } from '@ai/shared';
 
 /** 从查询文本解析企业：enterpriseId 指定 > 精确名称 > 前向搜索首位 > 企业全名包含于查询文本 */
@@ -13,7 +13,7 @@ async function resolveEnterpriseId(query: string, enterpriseId?: string): Promis
     return (matched.find((c) => c.name === query) ?? matched[0]).id;
   }
   const all = await qichachaClient.searchEnterprise('');
-  return all.find((c) => query.includes(c.name))?.id;
+  return matchEnterpriseByQuery(query, all)?.id;
 }
 
 /**

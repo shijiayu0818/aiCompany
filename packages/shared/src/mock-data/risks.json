@@ -43,5 +43,23 @@
     "date": "2025-07-08",
     "detail": "环保不达标被责令整改",
     "source": "生态环境局"
+  },
+  {
+    "id": "risk6",
+    "enterpriseId": "e7",
+    "type": "行政处罚",
+    "level": "yellow",
+    "date": "2025-05-20",
+    "detail": "广告宣传用语不规范被责令整改",
+    "source": "市场监督管理局"
+  },
+  {
+    "id": "risk7",
+    "enterpriseId": "e8",
+    "type": "司法风险",
+    "level": "yellow",
+    "date": "2025-04-11",
+    "detail": "涉及网络购物合同纠纷诉讼，涉案金额80万元",
+    "source": "中国裁判文书网"
   }
 ]
