@@ -3,7 +3,7 @@
 // G6 力导向图组件（AGENTS.md: 图谱可视化统一走 AntV G6）
 // 动态导入 @antv/g6 避免 SSR 模块级 window 引用报错
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import type { GraphData, GraphNode } from '@ai/shared';
 import type { Graph as G6Graph, NodeData, EdgeData } from '@antv/g6';
 
@@ -40,12 +40,24 @@ function transformData(data: GraphData) {
   };
 }
 
+/** 工具栏按钮样式（复用设计系统变量） */
+const toolButtonStyle: CSSProperties = {
+  padding: '4px 10px',
+  fontSize: 'var(--font-sm)',
+  color: 'var(--color-text-secondary)',
+  background: 'var(--color-bg-secondary)',
+  border: '1px solid var(--color-border)',
+  borderRadius: 'var(--radius-sm)',
+  cursor: 'pointer',
+};
+
 export function GraphView({ data, onNodeClick }: GraphViewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const graphRef = useRef<G6Graph | null>(null);
   const callbackRef = useRef(onNodeClick);
   // 初始化是异步的，期间数据可能已到达，用 ref 保证初始化时使用最新数据
   const dataRef = useRef(data);
+  const [exporting, setExporting] = useState(false);
 
   // 保持回调引用最新（避免重建图实例）
   useEffect(() => {
@@ -73,6 +85,7 @@ export function GraphView({ data, onNodeClick }: GraphViewProps) {
         width: container.clientWidth || 600,
         height: container.clientHeight || 400,
         autoFit: 'view',
+        zoomRange: [0.2, 4],
         data: dataRef.current ? transformData(dataRef.current) : { nodes: [], edges: [] },
         node: {
           type: 'circle',
@@ -143,6 +156,37 @@ export function GraphView({ data, onNodeClick }: GraphViewProps) {
 
   const empty = !data || data.nodes.length === 0;
 
+  const handleZoomIn = () => {
+    void graphRef.current?.zoomBy(1.2);
+  };
+
+  const handleZoomOut = () => {
+    void graphRef.current?.zoomBy(1 / 1.2);
+  };
+
+  const handleFitView = () => {
+    void graphRef.current?.fitView();
+  };
+
+  /** 导出当前图谱为 PNG（overall：完整画布，不受视口裁剪影响） */
+  const handleExport = async () => {
+    const graph = graphRef.current;
+    if (!graph || exporting) return;
+    setExporting(true);
+    try {
+      const dataUrl = await graph.toDataURL({ mode: 'overall' });
+      const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+      const link = document.createElement('a');
+      link.href = dataUrl;
+      link.download = `企业关联图谱-${stamp}.png`;
+      link.click();
+    } catch {
+      // 导出失败时按钮恢复可用，用户可重试
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
       <div
@@ -150,6 +194,37 @@ export function GraphView({ data, onNodeClick }: GraphViewProps) {
         style={{ width: '100%', height: '100%' }}
         aria-label="企业关联关系图谱"
       />
+      {!empty && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 'var(--space-sm)',
+            right: 'var(--space-sm)',
+            display: 'flex',
+            gap: 'var(--space-xs)',
+          }}
+          aria-label="图谱工具栏"
+        >
+          <button type="button" style={toolButtonStyle} onClick={handleZoomIn} aria-label="放大图谱">
+            放大
+          </button>
+          <button type="button" style={toolButtonStyle} onClick={handleZoomOut} aria-label="缩小图谱">
+            缩小
+          </button>
+          <button type="button" style={toolButtonStyle} onClick={handleFitView} aria-label="适应画布">
+            适应画布
+          </button>
+          <button
+            type="button"
+            style={toolButtonStyle}
+            onClick={() => void handleExport()}
+            disabled={exporting}
+            aria-label="导出图谱为图片"
+          >
+            {exporting ? '导出中…' : '导出图片'}
+          </button>
+        </div>
+      )}
       {empty && (
         <div
           style={{

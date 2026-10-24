@@ -18,6 +18,9 @@ out/
 milvus_data/
 .milvus/
 
+# 会话检查点（SQLite）
+.data/
+
 # Neo4j
 neo4j_data/
 

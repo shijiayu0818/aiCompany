@@ -42,6 +42,13 @@ const GraphView = dynamic(
 
 const SESSIONS_KEY = 'ai-enterprise-sessions';
 
+/** GET /api/agent 返回的会话恢复数据 */
+interface SessionStateResponse {
+  currentGraph?: GraphData;
+  reasoning?: string;
+  supervisorTask?: string;
+}
+
 export default function HomePage() {
   const [sessions, setSessions] = useState<SessionMeta[]>([]);
   const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
@@ -51,26 +58,54 @@ export default function HomePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // 从 sessionStorage 恢复会话列表
-  useEffect(() => {
-    try {
-      const stored = sessionStorage.getItem(SESSIONS_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored) as SessionMeta[];
-        setSessions(parsed);
-        if (parsed.length > 0) {
-          setActiveThreadId(parsed[0].threadId);
-        }
-      }
-    } catch {
-      // sessionStorage 不可用或数据损坏，忽略
+  /** 从服务端持久化的检查点恢复指定会话的展示内容 */
+  const loadSession = useCallback(async (threadId: string) => {
+    const response = await fetch(`/api/agent?threadId=${threadId}`);
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+    const data = (await response.json()) as SessionStateResponse;
+    setGraphData(data.currentGraph ?? null);
+    if (data.reasoning) {
+      setProcess({
+        supervisor: {
+          taskDescription: data.supervisorTask ?? '',
+          needsCompanyInfo: false,
+          needsGraph: false,
+          needsBusiness: false,
+          reasoning: data.reasoning,
+        },
+        steps: [],
+        graphReady: !!data.currentGraph,
+      });
     }
   }, []);
+
+  // 从 localStorage 恢复会话列表，并恢复最近一次有内容的会话
+  useEffect(() => {
+    let parsed: SessionMeta[] = [];
+    try {
+      const stored = localStorage.getItem(SESSIONS_KEY);
+      if (stored) parsed = JSON.parse(stored) as SessionMeta[];
+    } catch {
+      // localStorage 不可用或数据损坏，忽略
+    }
+    if (parsed.length === 0) return;
+
+    setSessions(parsed);
+    const target = parsed.find((s) => s.lastQuery) ?? parsed[0];
+    setActiveThreadId(target.threadId);
+    if (target.lastQuery) {
+      void loadSession(target.threadId).catch(() => {
+        // 历史状态不存在时保持空展示，不打扰用户
+      });
+    }
+  }, [loadSession]);
 
   // 持久化会话列表
   useEffect(() => {
     try {
-      sessionStorage.setItem(SESSIONS_KEY, JSON.stringify(sessions));
+      localStorage.setItem(SESSIONS_KEY, JSON.stringify(sessions));
     } catch {
       // 忽略写入失败
     }
@@ -97,7 +132,9 @@ export default function HomePage() {
           query.length > 20 ? query.slice(0, 20) + '…' : query;
         if (existing) {
           return prev.map((s) =>
-            s.threadId === threadId ? { ...s, lastQuery: query } : s,
+            s.threadId === threadId
+              ? { ...s, lastQuery: query, title: s.lastQuery ? s.title : title }
+              : s,
           );
         }
         return [
@@ -186,49 +223,47 @@ export default function HomePage() {
     [activeThreadId],
   );
 
-  /** 新建会话 */
+  /** 新建会话：立即在列表顶部生成并选中，给出可见反馈 */
   const handleNewSession = useCallback(() => {
-    setActiveThreadId(null);
+    setError(null);
+    setSelectedNode(null);
+    setProcess(null);
     setGraphData(null);
-    setProcess(null);
-    setSelectedNode(null);
-    setError(null);
-  }, []);
 
-  /** 切换会话（从 MemorySaver 恢复展示） */
-  const handleSelectSession = useCallback(async (threadId: string) => {
+    const current = sessions.find((s) => s.threadId === activeThreadId);
+    // 当前已是空会话时直接复用，避免重复堆积
+    if (current && !current.lastQuery) return;
+
+    const threadId = crypto.randomUUID();
     setActiveThreadId(threadId);
-    setSelectedNode(null);
-    setError(null);
-    setProcess(null);
+    setSessions((prev) => [
+      { threadId, title: '新会话', createdAt: Date.now() },
+      ...prev,
+    ]);
+  }, [sessions, activeThreadId]);
 
-    try {
-      const response = await fetch(`/api/agent?threadId=${threadId}`);
-      if (response.ok) {
-        const data = (await response.json()) as {
-          currentGraph?: GraphData;
-          reasoning?: string;
-          supervisorTask?: string;
-        };
-        setGraphData(data.currentGraph ?? null);
-        if (data.reasoning) {
-          setProcess({
-            supervisor: {
-              taskDescription: data.supervisorTask ?? '',
-              needsCompanyInfo: false,
-              needsGraph: false,
-              needsBusiness: false,
-              reasoning: data.reasoning,
-            },
-            steps: [],
-            graphReady: !!data.currentGraph,
-          });
-        }
+  /** 切换会话（从服务端持久化的检查点恢复展示） */
+  const handleSelectSession = useCallback(
+    async (threadId: string) => {
+      if (threadId === activeThreadId) return;
+      setActiveThreadId(threadId);
+      setSelectedNode(null);
+      setError(null);
+      setProcess(null);
+      setGraphData(null);
+
+      const meta = sessions.find((s) => s.threadId === threadId);
+      // 尚未查询过的空会话无需恢复
+      if (!meta?.lastQuery) return;
+
+      try {
+        await loadSession(threadId);
+      } catch {
+        setError('该会话的历史状态不存在或已过期');
       }
-    } catch {
-      // MemorySaver 中无此会话（服务重启），忽略
-    }
-  }, []);
+    },
+    [activeThreadId, sessions, loadSession],
+  );
 
   return (
     <div className="app-layout">

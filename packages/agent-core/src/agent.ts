@@ -1,4 +1,4 @@
-import { StateGraph, START, END, MemorySaver } from '@langchain/langgraph';
+import { StateGraph, START, END, MemorySaver, type BaseCheckpointSaver } from '@langchain/langgraph';
 import { SupervisorStateAnnotation, type SupervisorState } from './state';
 import { supervisorNode } from './supervisor';
 import { companyAdapter } from './adapters/company-adapter';
@@ -12,9 +12,9 @@ import { graphBuilderNode } from './graph-builder';
  * 流程：
  * START → supervisor → [条件路由] → company/graph/business 并行 → graph-builder → END
  *
- * @param options.checkpointer 会话持久化（MemorySaver），用于多轮对话
+ * @param options.checkpointer 会话持久化实现（默认 MemorySaver，可传 SqliteSaver 等）
  */
-export function buildAgentGraph(options?: { checkpointer?: MemorySaver }) {
+export function buildAgentGraph(options?: { checkpointer?: BaseCheckpointSaver }) {
   const workflow = new StateGraph(SupervisorStateAnnotation)
     .addNode('supervisor', supervisorNode)
     .addNode('company_node', companyAdapter)
@@ -55,8 +55,11 @@ export function buildAgentGraph(options?: { checkpointer?: MemorySaver }) {
 }
 
 /**
- * 创建带默认 MemorySaver 的图（多轮对话）
+ * 创建图实例（默认 MemorySaver，多轮对话）
+ * 传入 checkpointer 可替换为持久化实现（如 SqliteSaver）
  */
-export function createGraph() {
-  return buildAgentGraph({ checkpointer: new MemorySaver() });
+export function createGraph(options?: { checkpointer?: BaseCheckpointSaver }) {
+  return buildAgentGraph({
+    checkpointer: options?.checkpointer ?? new MemorySaver(),
+  });
 }

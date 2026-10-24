@@ -12,12 +12,16 @@ const nextConfig = {
       '@langchain/openai',
       '@langchain/langgraph',
       '@langchain/core',
+      '@langchain/langgraph-checkpoint-sqlite',
+      'better-sqlite3',
     ],
   },
   webpack: (config) => {
     // chromadb 的 ESM 构建包含 https://unpkg.com 动态 import，
     // webpack 无法静态分析（UnhandledSchemeError），显式排除
     config.externals.push('chromadb');
+    // better-sqlite3 为原生模块（.node 二进制），必须交由 Node 运行时加载
+    config.externals.push('better-sqlite3');
     return config;
   },
 };

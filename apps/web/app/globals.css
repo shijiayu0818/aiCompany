@@ -192,10 +192,19 @@ select:focus-visible {
 /* ===== 响应式（窄屏折叠左右栏） ===== */
 @media (max-width: 1024px) {
   .app-main {
+    grid-template-columns: 220px 1fr;
+  }
+  /* 中等窗口只收起右侧详情栏，保留左侧历史会话 */
+  .app-detail {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .app-main {
     grid-template-columns: 1fr;
   }
-  .app-sidebar,
-  .app-detail {
+  .app-sidebar {
     display: none;
   }
 }
