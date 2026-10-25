@@ -51,6 +51,27 @@ const toolButtonStyle: CSSProperties = {
   cursor: 'pointer',
 };
 
+/**
+ * 从事件目标向上追溯到节点 id
+ * G6 v5 的事件 target 是 DisplayObject（可能命中节点内部的图形），不含业务数据，需按 id 回查
+ */
+function resolveNodeId(target: unknown, validIds: Set<string>): string | null {
+  let current = target as
+    | { id?: unknown; parentElement?: unknown; parent?: unknown }
+    | null
+    | undefined;
+  for (let depth = 0; current && depth < 10; depth += 1) {
+    const id = current.id;
+    if (typeof id === 'string' && validIds.has(id)) return id;
+    // G6 v5 的 DisplayObject 用 parentElement，部分图形对象只暴露 parent
+    current = (current.parentElement ?? current.parent) as
+      | { id?: unknown; parentElement?: unknown; parent?: unknown }
+      | null
+      | undefined;
+  }
+  return null;
+}
+
 export function GraphView({ data, onNodeClick }: GraphViewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const graphRef = useRef<G6Graph | null>(null);
@@ -126,11 +147,23 @@ export function GraphView({ data, onNodeClick }: GraphViewProps) {
         behaviors: ['drag-canvas', 'zoom-canvas', 'drag-element'],
       });
 
+      // G6 v5 事件 target 是元素而非业务数据，统一按 id 回查最新业务节点
       graph.on('node:click', (e: unknown) => {
-        const event = e as { target?: { id?: string; data?: GraphNode } };
-        const nodeData = event.target?.data;
-        if (nodeData) {
-          callbackRef.current?.(nodeData);
+        // 节点数据缺失时不应抛出，静默降级为「无详情」展示
+        try {
+          const nodes = dataRef.current?.nodes ?? [];
+          const nodeId = resolveNodeId(
+            (e as { target?: unknown }).target,
+            new Set(nodes.map((n) => n.id)),
+          );
+          if (!nodeId) return;
+
+          const nodeData = nodes.find((n) => n.id === nodeId);
+          if (nodeData) {
+            callbackRef.current?.(nodeData);
+          }
+        } catch (err) {
+          console.warn('[GraphView] 节点点击解析失败，已忽略本次点击', err);
         }
       });
 
@@ -146,12 +179,56 @@ export function GraphView({ data, onNodeClick }: GraphViewProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // 数据更新（增量渲染）
-  // 初始化完成前的数据由 dataRef 在创建实例时读取，这里只处理实例已存在的情况
+  // 容器尺寸变化（窗口缩放、侧栏折叠）时同步画布尺寸，保持图谱占满可用区域
   useEffect(() => {
-    if (!graphRef.current || !data) return;
-    graphRef.current.setData(transformData(data));
-    void graphRef.current.render();
+    const container = containerRef.current;
+    if (!container || typeof ResizeObserver === 'undefined') return;
+
+    let frame = 0;
+    const observer = new ResizeObserver(() => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        const graph = graphRef.current;
+        const width = container.clientWidth;
+        const height = container.clientHeight;
+        if (!graph || width <= 0 || height <= 0) return;
+        graph.resize(width, height);
+      });
+    });
+    observer.observe(container);
+
+    return () => {
+      cancelAnimationFrame(frame);
+      observer.disconnect();
+    };
+  }, []);
+
+  // 数据更新（切换会话/重新查询）
+  // 初始化完成前的数据由 dataRef 在创建实例时读取，这里只处理实例已存在的情况
+  // data 为 null（如新建会话）时必须显式清空画布，否则旧图谱会残留
+  useEffect(() => {
+    const graph = graphRef.current;
+    if (!graph) return;
+    let cancelled = false;
+
+    (async () => {
+      graph.setData(data ? transformData(data) : { nodes: [], edges: [] });
+      await graph.render();
+      if (cancelled) return;
+
+      // 切换会话时容器尺寸可能已变化，先同步画布尺寸再自适应，避免图谱缩在一角
+      const container = containerRef.current;
+      if (container && container.clientWidth > 0 && container.clientHeight > 0) {
+        graph.resize(container.clientWidth, container.clientHeight);
+      }
+      if (data && data.nodes.length > 0) {
+        await graph.fitView();
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [data]);
 
   const empty = !data || data.nodes.length === 0;

@@ -125,6 +125,21 @@ export function NodeDetail({ node }: NodeDetailProps) {
           </pre>
         </div>
       )}
+
+      {/* 无详情数据时的友好提示 */}
+      {detail == null && !node.refId && !node.meta && (
+        <div
+          style={{
+            padding: 'var(--space-sm)',
+            fontSize: 'var(--font-xs)',
+            color: 'var(--color-text-tertiary)',
+            background: 'var(--color-bg-primary)',
+            borderRadius: 'var(--radius-md)',
+          }}
+        >
+          该节点暂无更多详情数据
+        </div>
+      )}
     </div>
   );
 }
