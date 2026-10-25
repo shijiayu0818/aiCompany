@@ -12,14 +12,14 @@ const MILVUS_URI = process.env.MILVUS_URI;
 const COLLECTION = `it-milvus-${Date.now()}`;
 
 /** 确定性 8 维向量：同文本同向量，不同文本向量可分（连通性测试不追求语义相似） */
-function hashEmbed(texts: string[]): number[][] {
-  return texts.map((t) => {
+function hashEmbed(texts: string[]): Promise<number[][]> {
+  return Promise.resolve(texts.map((t) => {
     const v = new Array(8).fill(0);
     for (let i = 0; i < t.length; i++) {
       v[i % 8] += (t.charCodeAt(i) % 97) / 97;
     }
     return v;
-  });
+  }));
 }
 
 const docs: VectorDoc[] = [
@@ -55,7 +55,7 @@ describe.skipIf(!MILVUS_URI)('MilvusStore 真实连通性（本地 Milvus standa
   afterAll(async () => {
     if (!client) return;
     await client.dropCollection({ collection_name: COLLECTION });
-    await client.close();
+    await client.closeConnection();
   });
 
   it('服务连通：listCollections 可调用', async () => {

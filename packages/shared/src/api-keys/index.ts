@@ -1,6 +1,6 @@
 // API Key 统一管理
 // 所有密钥从环境变量读取，禁止在业务代码中硬编码
-
+// 枚举 API Key 名称
 export type ApiKeyName =
   | 'LLM_API_KEY'
   | 'QICHACHA_API_KEY'

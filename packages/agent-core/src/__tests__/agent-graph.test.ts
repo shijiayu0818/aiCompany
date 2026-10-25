@@ -13,7 +13,6 @@ vi.mock('../adapters/graph-adapter', () => ({ graphAdapter: nodeMocks.graph }));
 vi.mock('../adapters/business-adapter', () => ({ businessAdapter: nodeMocks.business }));
 
 import { buildAgentGraph, createGraph } from '../agent';
-import { makeState } from './helpers';
 
 const noopDecision = {
   taskDescription: '',

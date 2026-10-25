@@ -9,7 +9,7 @@ const chromaMocks = vi.hoisted(() => {
   };
   const client = {
     getOrCreateCollection: vi.fn(async () => collection),
-    listCollections: vi.fn(async () => []),
+    listCollections: vi.fn(async (): Promise<string[]> => []),
   };
   return { collection, client };
 });
