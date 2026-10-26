@@ -93,6 +93,19 @@ export default function HomePage() {
   /** 当前活动消息（最新一条） */
   const activeMessage = messages[messages.length - 1] ?? null;
 
+  /**
+   * 最近一条含完整数据（报告或图谱）的消息
+   * directResponse 等轻量回复不携带数据，不应顶掉上一条数据消息的展示：
+   * 旧数据消息保持完整展开，右侧详情栏仍展示该消息的企业信息
+   */
+  const latestDataMessage = (() => {
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const m = messages[i];
+      if (m.report || m.graphData) return m;
+    }
+    return null;
+  })();
+
   /** 更新最后一条消息的辅助 */
   const updateActiveMessage = useCallback(
     (updater: (prev: MessageEntry) => MessageEntry) => {
@@ -414,7 +427,12 @@ export default function HomePage() {
               <MessageBlock
                 key={msg.id}
                 entry={msg}
-                isActive={msg.id === activeMessage?.id}
+                // 数据消息只有被更新的数据消息顶上来才折叠；
+                // 无数据消息（loading 中 / directResponse）永不折叠
+                isActive={
+                  msg.id === latestDataMessage?.id ||
+                  !(msg.report || msg.graphData)
+                }
                 onNodeClick={setSelectedNode}
               />
             ))}
@@ -429,8 +447,8 @@ export default function HomePage() {
         <aside className="app-detail">
           <NodeDetail
             node={selectedNode}
-            graphData={activeMessage?.graphData ?? null}
-            enterprise={activeMessage?.report?.enterprise}
+            graphData={latestDataMessage?.graphData ?? null}
+            enterprise={latestDataMessage?.report?.enterprise}
           />
         </aside>
       </main>
@@ -466,6 +484,24 @@ function MessageBlock({
     );
   }
 
+  // 图谱区三态判定
+  const wantsGraph = !!process?.supervisor?.needsGraph;
+  const graphFailed =
+    process?.steps.some(
+      (s) => s.node === 'graph_node' && s.status === 'error',
+    ) ?? false;
+  // 图谱查询失败时不渲染兜底单节点图（孤节点无边等同于无结果，避免误导）
+  const showGraph = !!graphData && !graphFailed;
+  // 无结果提示：查询失败立即提示；或本次需要图谱但查询结束仍无数据
+  const showGraphEmpty =
+    !showGraph && (graphFailed || (!loading && wantsGraph && !graphData));
+  // 加载占位：Supervisor 决策未到达时乐观展示；已明确不需要图谱则不占位
+  const showGraphLoading =
+    !showGraph && !graphFailed && loading && (wantsGraph || !process?.supervisor);
+  const hasGraphCol = showGraph || showGraphEmpty || showGraphLoading;
+  // 整体无结果：企业主体也未找到（报告与图谱都为空）
+  const noResult = !loading && !report && !graphData && !error;
+
   return (
     <div className={`message-block ${isOld ? 'message-old' : 'message-active'}`}>
       {/* 用户查询语句 */}
@@ -479,10 +515,10 @@ function MessageBlock({
         <MessageSnapshot entry={entry} />
       ) : (
         <div
-          className={`message-active-content ${!graphData && !loading ? 'no-graph' : ''}`}
+          className={`message-active-content ${hasGraphCol && !noResult ? '' : 'no-graph'}`}
         >
-          {/* 左：图谱（本次查询未涉及图谱时不渲染，报告占满全宽） */}
-          {graphData ? (
+          {/* 左：图谱区（正常图谱 / 加载中 / 无结果） */}
+          {noResult ? null : graphData && !graphFailed ? (
             <div className="message-graph">
               <GraphView
                 data={graphData}
@@ -490,19 +526,17 @@ function MessageBlock({
                 onNodeClick={onNodeClick}
               />
             </div>
-          ) : loading ? (
+          ) : showGraphLoading ? (
             <div className="message-graph">
-              <div
-                style={{
-                  flex: 1,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: 'var(--font-sm)',
-                  color: 'var(--color-text-tertiary)',
-                }}
-              >
+              <div className="message-graph-status" role="status">
+                <span className="message-graph-spinner" aria-hidden="true" />
                 正在生成图谱…
+              </div>
+            </div>
+          ) : showGraphEmpty ? (
+            <div className="message-graph">
+              <div className="message-graph-status" role="status">
+                无法搜索该内容
               </div>
             </div>
           ) : null}
@@ -515,6 +549,12 @@ function MessageBlock({
               progressText={buildProgressText(process)}
               animated={animated}
             />
+
+            {noResult && (
+              <div className="message-no-result" role="status">
+                无法搜索该内容
+              </div>
+            )}
 
             {process && (
               <div className="message-process">
