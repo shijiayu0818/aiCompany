@@ -46,6 +46,7 @@ function buildStateForInjected(
     needsBusiness: decision.needsBusiness,
     businessQuery: decision.businessQuery ?? undefined,
     reasoning: decision.reasoning ?? '',
+    directResponse: decision.directResponse ?? undefined,
     companyOutput: '',
     graphOutput: '',
     businessOutput: '',

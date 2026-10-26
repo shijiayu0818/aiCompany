@@ -59,6 +59,7 @@ export async function POST(req: NextRequest) {
               needsBusiness: (stateUpdate.needsBusiness as boolean) ?? false,
               businessQuery: stateUpdate.businessQuery as string | undefined,
               reasoning: (stateUpdate.reasoning as string) ?? '',
+              directResponse: stateUpdate.directResponse as string | undefined,
             };
             yield { type: 'supervisor', data: decision };
           } else if (

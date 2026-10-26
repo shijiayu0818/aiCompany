@@ -15,6 +15,7 @@ export interface TaskDistributionLike {
   needsBusiness: boolean;
   businessQuery?: string | null;
   reasoning: string;
+  directResponse?: string | null;
 }
 
 // ===== 评测用例 =====

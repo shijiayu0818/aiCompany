@@ -144,8 +144,12 @@ export async function graphBuilderNode(
 
   let currentGraph = state.currentGraph;
 
+  // 本次查询不涉及图谱（needsGraph=false）时清空图谱，前端不再展示图谱区
+  if (!state.needsGraph) {
+    currentGraph = undefined;
+  }
   // 1. 组装图谱
-  if (graphData && Array.isArray(graphData.nodes) && graphData.nodes.length > 0) {
+  else if (graphData && Array.isArray(graphData.nodes) && graphData.nodes.length > 0) {
     // 附加企业信息到企业节点的 detail
     if (company) {
       for (const node of graphData.nodes) {

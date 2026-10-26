@@ -223,6 +223,12 @@ select:focus-visible {
   min-height: 480px;
 }
 
+/* 本次查询未涉及图谱：单列布局，报告占满全宽 */
+.message-active-content.no-graph {
+  grid-template-columns: 1fr;
+  min-height: unset;
+}
+
 .message-graph {
   position: relative;
   min-height: 400px;
@@ -319,6 +325,18 @@ select:focus-visible {
   font-size: var(--font-sm);
   color: var(--color-text-primary);
   line-height: 1.6;
+}
+
+/* 直接文本回复（无 Agent 调用，如问候、功能咨询、无对应数据） */
+.message-direct-response {
+  padding: var(--space-md);
+  font-size: var(--font-sm);
+  color: var(--color-text-primary);
+  line-height: 1.8;
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  white-space: pre-wrap;
 }
 
 /* 旧消息快照 */

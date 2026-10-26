@@ -32,6 +32,10 @@ export const TaskDistributionSchema = z.object({
   reasoning: z
     .string()
     .describe('本次任务分配的决策理由，用于可审计性'),
+  directResponse: z
+    .string()
+    .nullable()
+    .describe('当查询不是具体企业数据请求时的直接回复文本。设置后 needsCompanyInfo/needsGraph/needsBusiness 必须全为 false，系统将跳过所有 Agent 调用直接返回此文本。适用场景：问候、闲聊、功能咨询（如"我还能问什么"）、无对应数据源的请求（如"拜访须知"）、模糊查询（如"查个公司"未提供企业名）'),
 });
 
 export type TaskDistribution = z.infer<typeof TaskDistributionSchema>;

@@ -29,6 +29,8 @@ interface MessageEntry {
   animated: boolean;
   loading: boolean;
   error: string | null;
+  /** 直接回复文本：跳过 Agent 调用时由 Supervisor 返回 */
+  directResponse: string | null;
 }
 
 // G6 组件动态加载（ssr: false 避免 SSR 模块级 window 引用）
@@ -119,6 +121,7 @@ export default function HomePage() {
       animated: false,
       loading: false,
       error: null,
+      directResponse: null,
       process: data.reasoning
         ? {
             supervisor: {
@@ -176,6 +179,7 @@ export default function HomePage() {
         animated: false,
         loading: true,
         error: null,
+        directResponse: null,
       };
       setMessages((prev) => [...prev, newEntry]);
       setSelectedNode(null);
@@ -239,6 +243,16 @@ export default function HomePage() {
 
             switch (event.type) {
               case 'supervisor': {
+                // directResponse：跳过所有 Agent 调用，直接显示文本回复
+                if (event.data.directResponse) {
+                  updateActiveMessage((prev) => ({
+                    ...prev,
+                    directResponse: event.data.directResponse!,
+                    process: { supervisor: event.data, steps: [], graphReady: false },
+                    loading: false,
+                  }));
+                  break;
+                }
                 const steps: ProcessStep[] = [];
                 if (event.data.needsCompanyInfo)
                   steps.push({ node: 'company_node', label: '企业信息', status: 'pending' });
@@ -434,8 +448,23 @@ function MessageBlock({
   isActive: boolean;
   onNodeClick: (node: GraphNode) => void;
 }) {
-  const { query, graphData, report, process, animated, loading, error } = entry;
+  const { query, graphData, report, process, animated, loading, error, directResponse } = entry;
   const isOld = !isActive;
+
+  // directResponse：跳过 Agent 调用的直接文本回复
+  if (directResponse) {
+    return (
+      <div className={`message-block ${isOld ? 'message-old' : 'message-active'}`}>
+        <div className="message-query">
+          <span className="message-query-label">你</span>
+          <span className="message-query-text">{query}</span>
+        </div>
+        <div className="message-direct-response">
+          {directResponse}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`message-block ${isOld ? 'message-old' : 'message-active'}`}>
@@ -449,16 +478,20 @@ function MessageBlock({
       {isOld ? (
         <MessageSnapshot entry={entry} />
       ) : (
-        <div className="message-active-content">
-          {/* 左：图谱 */}
-          <div className="message-graph">
-            {graphData ? (
+        <div
+          className={`message-active-content ${!graphData && !loading ? 'no-graph' : ''}`}
+        >
+          {/* 左：图谱（本次查询未涉及图谱时不渲染，报告占满全宽） */}
+          {graphData ? (
+            <div className="message-graph">
               <GraphView
                 data={graphData}
                 loading={loading}
                 onNodeClick={onNodeClick}
               />
-            ) : (
+            </div>
+          ) : loading ? (
+            <div className="message-graph">
               <div
                 style={{
                   flex: 1,
@@ -469,10 +502,10 @@ function MessageBlock({
                   color: 'var(--color-text-tertiary)',
                 }}
               >
-                {loading ? '正在生成图谱…' : '等待图谱数据…'}
+                正在生成图谱…
               </div>
-            )}
-          </div>
+            </div>
+          ) : null}
 
           {/* 右：报告 + 进度 + 错误 */}
           <div className="message-report-col">

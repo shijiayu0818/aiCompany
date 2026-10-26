@@ -26,6 +26,9 @@ export function buildAgentGraph(options?: { checkpointer?: BaseCheckpointSaver }
 
     // 条件路由：Supervisor 决策激活哪些 Worker
     .addConditionalEdges('supervisor', (state: SupervisorState) => {
+      // directResponse：跳过所有 Agent，直接返回
+      if (state.directResponse) return ['__end__'];
+
       const nextNodes: string[] = [];
       if (state.needsCompanyInfo) nextNodes.push('company_node');
       if (state.needsGraph) nextNodes.push('graph_node');
@@ -39,6 +42,7 @@ export function buildAgentGraph(options?: { checkpointer?: BaseCheckpointSaver }
       graph_node: 'graph_node',
       business_node: 'business_node',
       graph_builder: 'graph_builder',
+      __end__: END,
     })
 
     // Worker → 图谱组装器

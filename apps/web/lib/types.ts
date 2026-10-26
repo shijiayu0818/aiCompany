@@ -22,6 +22,8 @@ export interface SupervisorDecision {
   needsBusiness: boolean;
   businessQuery?: string;
   reasoning: string;
+  /** 直接回复文本：跳过所有 Agent 调用时设置（问候、功能咨询、无对应数据等） */
+  directResponse?: string;
 }
 
 // Worker 执行结果

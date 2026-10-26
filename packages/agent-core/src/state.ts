@@ -48,6 +48,10 @@ export const SupervisorStateAnnotation = Annotation.Root({
     reducer: (_curr, next) => next,
     default: () => '',
   }),
+  directResponse: Annotation<string | undefined>({
+    reducer: (curr, next) => next ?? curr,
+    default: () => undefined,
+  }),
 
   // ===== Worker 输出字段 =====
   companyOutput: Annotation<string>({

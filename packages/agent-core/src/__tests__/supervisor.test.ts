@@ -23,33 +23,31 @@ beforeEach(() => {
 });
 
 describe('supervisorNode', () => {
-  it('LLM 决策字段透传，企业相关查询强制激活三个 Worker 并补全查询语句', async () => {
+  it('LLM 决策字段透传：needsGraph/needsBusiness 按意图激活，不强制全开', async () => {
     mocks.invoke.mockResolvedValue({
-      taskDescription: '查询星辰智能',
+      taskDescription: '查询星辰智能基本信息',
       needsCompanyInfo: true,
-      companyQuery: '查询星辰智能基本信息',
+      companyQuery: '星辰智能科技集团',
       needsGraph: false,
       graphQuery: null,
       needsBusiness: false,
       businessQuery: null,
-      reasoning: '仅需企业信息',
+      reasoning: '仅查询基本信息，不涉及关联关系',
     });
 
-    const result = await supervisorNode(makeState({ supervisorTask: '查询星辰智能' }));
+    const result = await supervisorNode(makeState({ supervisorTask: '查询星辰智能基本信息' }));
 
     expect(result.needsCompanyInfo).toBe(true);
-    expect(result.companyQuery).toBe('查询星辰智能基本信息');
-    expect(result.needsGraph).toBe(true);
-    expect(result.graphQuery).toBe('查询星辰智能的关联企业、股权结构与任职关系');
-    expect(result.needsBusiness).toBe(true);
-    expect(result.businessQuery).toBe(
-      '查询星辰智能的工商变更、风险、企业需求、网络舆情与财务情况',
-    );
-    expect(result.supervisorTask).toBe('查询星辰智能');
-    expect(result.reasoning).toBe('仅需企业信息');
+    expect(result.companyQuery).toBe('星辰智能科技集团');
+    expect(result.needsGraph).toBe(false);
+    expect(result.graphQuery).toBeUndefined();
+    expect(result.needsBusiness).toBe(false);
+    expect(result.businessQuery).toBeUndefined();
+    expect(result.supervisorTask).toBe('查询星辰智能基本信息');
+    expect(result.reasoning).toBe('仅查询基本信息，不涉及关联关系');
   });
 
-  it('仅命中图谱 Worker 时同样激活全部 Worker（整体报告）', async () => {
+  it('company 兜底：LLM 漏标 company 但 graph 命中时仍激活 company（报告主体）', async () => {
     mocks.invoke.mockResolvedValue({
       taskDescription: '阿里巴巴集团',
       needsCompanyInfo: false,
@@ -66,10 +64,31 @@ describe('supervisorNode', () => {
     expect(result.needsCompanyInfo).toBe(true);
     expect(result.companyQuery).toBe('阿里巴巴集团');
     expect(result.needsGraph).toBe(true);
-    expect(result.needsBusiness).toBe(true);
+    expect(result.needsBusiness).toBe(false);
   });
 
-  it('与企业无关的查询保持全部不激活', async () => {
+  it('directResponse 存在时早退：跳过所有 Agent', async () => {
+    mocks.invoke.mockResolvedValue({
+      taskDescription: '功能咨询',
+      needsCompanyInfo: true,
+      companyQuery: null,
+      needsGraph: true,
+      graphQuery: null,
+      needsBusiness: true,
+      businessQuery: null,
+      reasoning: '用户询问功能',
+      directResponse: '暂时没有该功能或该数据',
+    });
+
+    const result = await supervisorNode(makeState({ supervisorTask: '有什么拜访须知' }));
+
+    expect(result.directResponse).toBe('暂时没有该功能或该数据');
+    expect(result.needsCompanyInfo).toBe(false);
+    expect(result.needsGraph).toBe(false);
+    expect(result.needsBusiness).toBe(false);
+  });
+
+  it('三个全 false 且无 directResponse 时 company 兜底激活（异常防护）', async () => {
     mocks.invoke.mockResolvedValue({
       taskDescription: '问候',
       needsCompanyInfo: false,
@@ -83,12 +102,9 @@ describe('supervisorNode', () => {
 
     const result = await supervisorNode(makeState({ supervisorTask: '你好' }));
 
-    expect(result.needsCompanyInfo).toBe(false);
-    expect(result.companyQuery).toBeUndefined();
+    expect(result.needsCompanyInfo).toBe(true);
     expect(result.needsGraph).toBe(false);
-    expect(result.graphQuery).toBeUndefined();
     expect(result.needsBusiness).toBe(false);
-    expect(result.businessQuery).toBeUndefined();
   });
 
   it('withStructuredOutput 使用 functionCalling 方法（DeepSeek 兼容）', async () => {

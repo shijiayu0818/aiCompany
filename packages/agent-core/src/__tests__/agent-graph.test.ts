@@ -45,7 +45,7 @@ describe('buildAgentGraph 条件路由', () => {
     expect(result.currentGraph).toBeUndefined();
   });
 
-  it('仅激活 company：company_node 执行，输出经 graph_builder 回退为单节点', async () => {
+  it('仅激活 company：graph_builder 不组装图谱，currentGraph 为空', async () => {
     nodeMocks.supervisor.mockResolvedValue({
       ...noopDecision,
       needsCompanyInfo: true,
@@ -63,8 +63,8 @@ describe('buildAgentGraph 条件路由', () => {
     );
     expect(nodeMocks.graph).not.toHaveBeenCalled();
     expect(nodeMocks.business).not.toHaveBeenCalled();
-    expect(result.currentGraph!.nodes).toHaveLength(1);
-    expect(result.currentGraph!.nodes[0].name).toBe('星辰智能科技集团');
+    // needsGraph=false：不生成图谱（前端不展示图谱区）
+    expect(result.currentGraph).toBeUndefined();
   });
 
   it('三个 Worker 全激活：全部执行并汇聚组装图谱', async () => {
