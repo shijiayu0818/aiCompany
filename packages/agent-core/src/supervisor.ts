@@ -68,12 +68,12 @@ export async function supervisorNode(
       : undefined,
     needsGraph: needsFullReport,
     graphQuery: needsFullReport
-      ? (response.graphQuery ?? `${query} 的关联企业、股权结构与任职关系`)
+      ? (response.graphQuery ?? `${query}的关联企业、股权结构与任职关系`)
       : undefined,
     needsBusiness: needsFullReport,
     businessQuery: needsFullReport
       ? (response.businessQuery ??
-        `${query} 的工商变更、风险、企业需求、网络舆情与财务情况`)
+        `${query}的工商变更、风险、企业需求、网络舆情与财务情况`)
       : undefined,
     reasoning: response.reasoning,
   };

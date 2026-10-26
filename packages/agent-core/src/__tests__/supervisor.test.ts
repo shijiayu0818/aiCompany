@@ -40,10 +40,10 @@ describe('supervisorNode', () => {
     expect(result.needsCompanyInfo).toBe(true);
     expect(result.companyQuery).toBe('查询星辰智能基本信息');
     expect(result.needsGraph).toBe(true);
-    expect(result.graphQuery).toBe('查询星辰智能 的关联企业、股权结构与任职关系');
+    expect(result.graphQuery).toBe('查询星辰智能的关联企业、股权结构与任职关系');
     expect(result.needsBusiness).toBe(true);
     expect(result.businessQuery).toBe(
-      '查询星辰智能 的工商变更、风险、企业需求、网络舆情与财务情况',
+      '查询星辰智能的工商变更、风险、企业需求、网络舆情与财务情况',
     );
     expect(result.supervisorTask).toBe('查询星辰智能');
     expect(result.reasoning).toBe('仅需企业信息');
