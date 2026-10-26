@@ -51,6 +51,22 @@ interface SessionStateResponse {
   supervisorTask?: string;
 }
 
+/** 根据 AgentProcess 状态合成报告区的打字机进度文本 */
+function buildProgressText(process: AgentProcessState | null): string {
+  if (!process?.supervisor) return '正在分析查询意图…';
+  const doneLabels = process.steps
+    .filter((s) => s.status === 'done')
+    .map((s) => `${s.label}已返回`);
+  const active = process.steps.find(
+    (s) => s.status === 'running' || s.status === 'pending',
+  );
+  const parts = [...doneLabels];
+  if (active) parts.push(`正在查询${active.label}`);
+  if (process.graphReady) parts.push('图谱已更新');
+  if (parts.length === 0) return '已确定执行计划，正在调度 Agent…';
+  return `${parts.join('，')}…`;
+}
+
 export default function HomePage() {
   const [sessions, setSessions] = useState<SessionMeta[]>([]);
   const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
@@ -60,6 +76,8 @@ export default function HomePage() {
   const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // 报告是否为本次查询新生成（控制标题打字机与板块渐入动画；会话恢复不动画）
+  const [reportAnimated, setReportAnimated] = useState(false);
 
   /** 从服务端持久化的检查点恢复指定会话的展示内容 */
   const loadSession = useCallback(async (threadId: string) => {
@@ -85,7 +103,7 @@ export default function HomePage() {
     }
   }, []);
 
-  // 从 localStorage 恢复会话列表，并恢复最近一次有内容的会话
+  // 从 localStorage 恢复会话列表（初始化不自动恢复任何会话，保持新对话界面）
   useEffect(() => {
     let parsed: SessionMeta[] = [];
     try {
@@ -95,16 +113,8 @@ export default function HomePage() {
       // localStorage 不可用或数据损坏，忽略
     }
     if (parsed.length === 0) return;
-
     setSessions(parsed);
-    const target = parsed.find((s) => s.lastQuery) ?? parsed[0];
-    setActiveThreadId(target.threadId);
-    if (target.lastQuery) {
-      void loadSession(target.threadId).catch(() => {
-        // 历史状态不存在时保持空展示，不打扰用户
-      });
-    }
-  }, [loadSession]);
+  }, []);
 
   // 持久化会话列表
   useEffect(() => {
@@ -122,6 +132,7 @@ export default function HomePage() {
       setError(null);
       setProcess({ steps: [], graphReady: false });
       setSelectedNode(null);
+      setReportAnimated(false);
 
       const threadId = activeThreadId ?? crypto.randomUUID();
       if (!activeThreadId) {
@@ -215,6 +226,7 @@ export default function HomePage() {
                 break;
               case 'report':
                 setReport(event.data);
+                setReportAnimated(true);
                 break;
               case 'error':
                 setError(event.message);
@@ -231,7 +243,7 @@ export default function HomePage() {
     [activeThreadId],
   );
 
-  /** 新建会话：立即在列表顶部生成并选中，给出可见反馈 */
+  /** 新建会话：复用已有空会话并置顶，或创建新空会话 */
   const handleNewSession = useCallback(() => {
     setError(null);
     setSelectedNode(null);
@@ -239,17 +251,46 @@ export default function HomePage() {
     setGraphData(null);
     setReport(null);
 
-    const current = sessions.find((s) => s.threadId === activeThreadId);
-    // 当前已是空会话时直接复用，避免重复堆积
-    if (current && !current.lastQuery) return;
+    // 查找已有空会话（未发送过查询的）
+    const emptySession = sessions.find((s) => !s.lastQuery);
+    if (emptySession) {
+      // 复用空会话：移到第一位并选中
+      setActiveThreadId(emptySession.threadId);
+      setSessions((prev) => [
+        emptySession,
+        ...prev.filter((s) => s.threadId !== emptySession.threadId),
+      ]);
+      return;
+    }
 
+    // 没有空会话，创建新的
     const threadId = crypto.randomUUID();
     setActiveThreadId(threadId);
     setSessions((prev) => [
       { threadId, title: '新会话', createdAt: Date.now() },
       ...prev,
     ]);
-  }, [sessions, activeThreadId]);
+  }, [sessions]);
+
+  /** 删除会话：从列表移除，若删除的是当前会话则清空展示 */
+  const handleDeleteSession = useCallback(
+    (threadId: string) => {
+      setSessions((prev) => {
+        const next = prev.filter((s) => s.threadId !== threadId);
+        // 如果删除的是当前会话，清空展示并选中剩余第一个（如有）
+        if (threadId === activeThreadId) {
+          setActiveThreadId(next[0]?.threadId ?? null);
+          setSelectedNode(null);
+          setProcess(null);
+          setGraphData(null);
+          setReport(null);
+          setError(null);
+        }
+        return next;
+      });
+    },
+    [activeThreadId],
+  );
 
   /** 切换会话（从服务端持久化的检查点恢复展示） */
   const handleSelectSession = useCallback(
@@ -295,13 +336,19 @@ export default function HomePage() {
             activeThreadId={activeThreadId}
             onSelect={handleSelectSession}
             onNew={handleNewSession}
+            onDelete={handleDeleteSession}
           />
         </aside>
         <section className="app-center">
           <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
-            <GraphView data={graphData} onNodeClick={setSelectedNode} />
+            <GraphView data={graphData} loading={loading} onNodeClick={setSelectedNode} />
           </div>
-          <EnterpriseReportPanel report={report} />
+          <EnterpriseReportPanel
+            report={report}
+            streaming={loading}
+            progressText={buildProgressText(process)}
+            animated={reportAnimated}
+          />
           {error && (
             <div
               style={{
@@ -328,7 +375,7 @@ export default function HomePage() {
           <ChatInput onSend={handleSend} loading={loading} />
         </section>
         <aside className="app-detail">
-          <NodeDetail node={selectedNode} />
+          <NodeDetail node={selectedNode} graphData={graphData} />
         </aside>
       </main>
     </div>

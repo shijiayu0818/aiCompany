@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import type { SessionMeta } from '../lib/types';
 
 interface SessionListProps {
@@ -7,6 +8,7 @@ interface SessionListProps {
   activeThreadId: string | null;
   onSelect: (threadId: string) => void;
   onNew: () => void;
+  onDelete: (threadId: string) => void;
 }
 
 export function SessionList({
@@ -14,7 +16,10 @@ export function SessionList({
   activeThreadId,
   onSelect,
   onNew,
+  onDelete,
 }: SessionListProps) {
+  // 待确认删除的会话：点击 × 先弹确认，避免误删历史会话
+  const [pendingDelete, setPendingDelete] = useState<SessionMeta | null>(null);
   return (
     <div
       style={{
@@ -82,11 +87,20 @@ export function SessionList({
           </p>
         )}
         {sessions.map((s) => (
-          <button
+          <div
             key={s.threadId}
+            role="button"
+            tabIndex={0}
             onClick={() => onSelect(s.threadId)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onSelect(s.threadId);
+              }
+            }}
             aria-label={`切换到会话 ${s.title}`}
             style={{
+              position: 'relative',
               display: 'block',
               width: '100%',
               textAlign: 'left',
@@ -113,6 +127,7 @@ export function SessionList({
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
+                paddingRight: 'var(--space-lg)',
               }}
             >
               {s.title}
@@ -131,9 +146,91 @@ export function SessionList({
                 {s.lastQuery}
               </div>
             )}
-          </button>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setPendingDelete(s);
+              }}
+              aria-label={`删除会话 ${s.title}`}
+              style={{
+                position: 'absolute',
+                top: 'var(--space-sm)',
+                right: 'var(--space-sm)',
+                width: 20,
+                height: 20,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 'var(--font-xs)',
+                color: 'var(--color-text-tertiary)',
+                background: 'transparent',
+                border: 'none',
+                borderRadius: 'var(--radius-sm)',
+                cursor: 'pointer',
+                opacity: 0.6,
+                transition: 'opacity var(--transition-fast)',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.opacity = '1';
+                e.currentTarget.style.color = 'var(--color-danger)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.opacity = '0.6';
+                e.currentTarget.style.color = 'var(--color-text-tertiary)';
+              }}
+            >
+              ×
+            </button>
+          </div>
         ))}
       </div>
+
+      {/* 删除确认弹窗：提示删除后历史会话不可恢复 */}
+      {pendingDelete && (
+        <div
+          className="confirm-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-label="删除会话确认"
+          onClick={() => setPendingDelete(null)}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') setPendingDelete(null);
+          }}
+        >
+          <div
+            className="confirm-dialog"
+            role="document"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="confirm-title">删除会话</h3>
+            <p className="confirm-text">
+              确定删除「{pendingDelete.title}」吗？
+              <br />
+              删除后该会话的历史查询记录将无法恢复。
+            </p>
+            <div className="confirm-actions">
+              <button
+                type="button"
+                className="confirm-btn confirm-btn-cancel"
+                onClick={() => setPendingDelete(null)}
+              >
+                取消
+              </button>
+              <button
+                type="button"
+                className="confirm-btn confirm-btn-danger"
+                onClick={() => {
+                  onDelete(pendingDelete.threadId);
+                  setPendingDelete(null);
+                }}
+              >
+                删除
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

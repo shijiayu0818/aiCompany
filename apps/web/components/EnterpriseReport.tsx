@@ -2,7 +2,9 @@
 
 // 企业整体查询报告：企业信息 / 关联企业 / 风险等级 / 企业需求 / 网络舆情 / 财务情况
 // 展示在图谱下方，数据由 graph-builder 汇总三个 Agent 输出
+// SSE 查询期间以打字机效果展示进度，报告到达后各板块渐次呈现
 
+import { useEffect, useState } from 'react';
 import type {
   BusinessNeed,
   EnterpriseReport,
@@ -13,6 +15,34 @@ import type {
 
 interface EnterpriseReportPanelProps {
   report: EnterpriseReport | null;
+  /** 查询进行中：报告区显示打字机进度提示 */
+  streaming?: boolean;
+  /** 打字机展示的进度文本（由 AgentProcess 状态合成） */
+  progressText?: string;
+  /** 报告为本次查询新生成：标题打字机 + 板块渐入动画（会话恢复不动画） */
+  animated?: boolean;
+}
+
+/** 打字机效果：enabled 时逐字显示文本 */
+function useTypewriter(text: string, enabled: boolean, speed = 45): string {
+  const [displayed, setDisplayed] = useState(() => (enabled ? '' : text));
+
+  useEffect(() => {
+    if (!enabled) {
+      setDisplayed(text);
+      return;
+    }
+    setDisplayed('');
+    let index = 0;
+    const timer = setInterval(() => {
+      index += 1;
+      setDisplayed(text.slice(0, index));
+      if (index >= text.length) clearInterval(timer);
+    }, speed);
+    return () => clearInterval(timer);
+  }, [text, enabled, speed]);
+
+  return displayed;
 }
 
 const GRADE_LABELS: Record<string, string> = {
@@ -45,8 +75,31 @@ function formatTime(value: string): string {
   return value.replace('T', ' ').slice(0, 19);
 }
 
-export function EnterpriseReportPanel({ report }: EnterpriseReportPanelProps) {
-  if (!report) return null;
+export function EnterpriseReportPanel({
+  report,
+  streaming = false,
+  progressText = '',
+  animated = false,
+}: EnterpriseReportPanelProps) {
+  const typedProgress = useTypewriter(progressText, streaming && !report);
+  const typedTitle = useTypewriter(report?.enterprise.name ?? '', animated);
+
+  // 无报告且不在查询中：不渲染
+  if (!report && !streaming) return null;
+
+  // 查询进行中且报告未到达：打字机进度提示
+  if (!report) {
+    return (
+      <section className="report-panel" aria-label="报告生成中">
+        <div className="report-streaming" role="status">
+          <span className="report-typing">
+            {typedProgress}
+            <span className="report-caret" aria-hidden="true" />
+          </span>
+        </div>
+      </section>
+    );
+  }
 
   const {
     enterprise,
@@ -61,11 +114,23 @@ export function EnterpriseReportPanel({ report }: EnterpriseReportPanelProps) {
     generatedAt,
   } = report;
 
+  // animated 时卡片渐次呈现（stagger），会话恢复不动画
+  const cardProps = (index: number) =>
+    animated
+      ? {
+          className: 'report-card report-card-appear',
+          style: { animationDelay: `${index * 120}ms` as const },
+        }
+      : { className: 'report-card' };
+
   return (
     <section className="report-panel" aria-label="企业整体查询结果">
       <header className="report-header">
         <div>
-          <h2 className="report-title">{enterprise.name}</h2>
+          <h2 className="report-title">
+            {typedTitle}
+            {animated && <span className="report-caret" aria-hidden="true" />}
+          </h2>
           <p className="report-subtitle">
             企业整体查询结果 · 生成于 {formatTime(generatedAt)}
           </p>
@@ -80,7 +145,7 @@ export function EnterpriseReportPanel({ report }: EnterpriseReportPanelProps) {
 
       <div className="report-sections">
         {/* 1. 企业信息 + 变更预警 */}
-        <article className="report-card">
+        <article {...cardProps(0)}>
           <h3 className="report-card-title">企业信息</h3>
           <dl className="report-info-grid">
             <InfoItem label="法定代表人" value={enterprise.legalPerson} />
@@ -145,7 +210,7 @@ export function EnterpriseReportPanel({ report }: EnterpriseReportPanelProps) {
         </article>
 
         {/* 2. 关联企业 */}
-        <article className="report-card">
+        <article {...cardProps(1)}>
           <h3 className="report-card-title">
             关联企业
             <span className="report-count">{relatedEnterprises.length} 家</span>
@@ -183,7 +248,7 @@ export function EnterpriseReportPanel({ report }: EnterpriseReportPanelProps) {
         </article>
 
         {/* 3. 风险等级 */}
-        <article className="report-card">
+        <article {...cardProps(2)}>
           <h3 className="report-card-title">风险等级</h3>
           <div className={`report-risk-summary report-risk-${riskAssessment.level}`}>
             <span className="report-risk-score">{riskAssessment.score}</span>
@@ -215,7 +280,7 @@ export function EnterpriseReportPanel({ report }: EnterpriseReportPanelProps) {
         </article>
 
         {/* 4. 企业需求 */}
-        <article className="report-card">
+        <article {...cardProps(3)}>
           <h3 className="report-card-title">
             企业需求
             <span className="report-count">{needs.length} 项</span>
@@ -232,7 +297,7 @@ export function EnterpriseReportPanel({ report }: EnterpriseReportPanelProps) {
         </article>
 
         {/* 5. 企业网络舆情 */}
-        <article className="report-card">
+        <article {...cardProps(4)}>
           <h3 className="report-card-title">企业网络舆情</h3>
           {opinions.length > 0 ? (
             <ul className="report-list">
@@ -246,7 +311,7 @@ export function EnterpriseReportPanel({ report }: EnterpriseReportPanelProps) {
         </article>
 
         {/* 6. 财务情况 */}
-        <article className="report-card">
+        <article {...cardProps(5)}>
           <h3 className="report-card-title">财务情况</h3>
           {financials.length > 0 ? (
             <div className="report-table-wrap">

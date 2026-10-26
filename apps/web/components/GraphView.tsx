@@ -5,10 +5,12 @@
 
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import type { GraphData, GraphNode } from '@ai/shared';
-import type { Graph as G6Graph, NodeData, EdgeData } from '@antv/g6';
+import type { Graph as G6Graph, NodeData } from '@antv/g6';
 
 interface GraphViewProps {
   data: GraphData | null;
+  /** 查询进行中：图谱区显示 loading 遮罩 */
+  loading?: boolean;
   onNodeClick?: (node: GraphNode) => void;
 }
 
@@ -72,7 +74,7 @@ function resolveNodeId(target: unknown, validIds: Set<string>): string | null {
   return null;
 }
 
-export function GraphView({ data, onNodeClick }: GraphViewProps) {
+export function GraphView({ data, loading = false, onNodeClick }: GraphViewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const graphRef = useRef<G6Graph | null>(null);
   const callbackRef = useRef(onNodeClick);
@@ -131,12 +133,7 @@ export function GraphView({ data, onNodeClick }: GraphViewProps) {
           type: 'line',
           style: {
             stroke: '#4b5563',
-            labelText: (d: EdgeData) => {
-              const edgeData = (d.data ?? {}) as { type?: string; label?: string };
-              return edgeData.label ?? edgeData.type ?? '';
-            },
-            labelFontSize: 10,
-            labelFill: '#9ca3af',
+            // 边的关系文字不画在画布上（避免大量文字噪音），点击节点后在详情面板展示
           },
         },
         layout: {
@@ -212,6 +209,10 @@ export function GraphView({ data, onNodeClick }: GraphViewProps) {
     let cancelled = false;
 
     (async () => {
+      // data 为 null 时先 clear 再 setData，确保 G6 画布彻底清空
+      if (!data) {
+        graph.clear();
+      }
       graph.setData(data ? transformData(data) : { nodes: [], edges: [] });
       await graph.render();
       if (cancelled) return;
@@ -302,7 +303,7 @@ export function GraphView({ data, onNodeClick }: GraphViewProps) {
           </button>
         </div>
       )}
-      {empty && (
+      {empty && !loading && (
         <div
           style={{
             position: 'absolute',
@@ -317,6 +318,16 @@ export function GraphView({ data, onNodeClick }: GraphViewProps) {
           aria-label="图谱区域（暂无数据）"
         >
           输入查询后，企业关联关系图谱将在此展示
+        </div>
+      )}
+      {loading && (
+        <div
+          className="graph-loading"
+          role="status"
+          aria-label="图谱生成中"
+        >
+          <span className="graph-loading-spinner" aria-hidden="true" />
+          <span className="graph-loading-text">图谱生成中，请稍候…</span>
         </div>
       )}
     </div>

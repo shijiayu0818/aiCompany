@@ -1,9 +1,11 @@
 'use client';
 
-import type { GraphNode } from '@ai/shared';
+import type { GraphData, GraphNode } from '@ai/shared';
 
 interface NodeDetailProps {
   node: GraphNode | null;
+  /** 当前会话图谱数据：用于展示选中节点的关联关系 */
+  graphData: GraphData | null;
 }
 
 const NODE_TYPE_LABELS: Record<string, string> = {
@@ -18,7 +20,7 @@ const NODE_TYPE_COLORS: Record<string, string> = {
   shareholder: 'var(--color-node-shareholder)',
 };
 
-export function NodeDetail({ node }: NodeDetailProps) {
+export function NodeDetail({ node, graphData }: NodeDetailProps) {
   if (!node) {
     return (
       <div
@@ -42,6 +44,14 @@ export function NodeDetail({ node }: NodeDetailProps) {
       detail = node.detail;
     }
   }
+
+  // 与选中节点相连的边：关系文字从画布移到详情中展示
+  const relatedEdges = (graphData?.edges ?? []).filter(
+    (edge) => edge.source === node.id || edge.target === node.id,
+  );
+  const nodeNameById = new Map(
+    (graphData?.nodes ?? []).map((n) => [n.id, n.name] as const),
+  );
 
   return (
     <div style={{ padding: 'var(--space-md)' }}>
@@ -126,8 +136,72 @@ export function NodeDetail({ node }: NodeDetailProps) {
         </div>
       )}
 
+      {/* 关联关系（画布上不再绘制边文字，关系信息在详情中展示） */}
+      {relatedEdges.length > 0 && (
+        <div style={{ marginTop: 'var(--space-md)' }}>
+          <h3
+            style={{
+              fontSize: 'var(--font-sm)',
+              fontWeight: 600,
+              color: 'var(--color-text-secondary)',
+              marginBottom: 'var(--space-sm)',
+              paddingBottom: 'var(--space-xs)',
+              borderBottom: '1px solid var(--color-border)',
+            }}
+          >
+            关联关系
+            <span
+              style={{
+                marginLeft: 'var(--space-xs)',
+                fontSize: 'var(--font-xs)',
+                fontWeight: 400,
+                color: 'var(--color-text-tertiary)',
+              }}
+            >
+              {relatedEdges.length} 条
+            </span>
+          </h3>
+          <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+            {relatedEdges.map((edge) => {
+              const isSource = edge.source === node.id;
+              const otherId = isSource ? edge.target : edge.source;
+              const otherName = nodeNameById.get(otherId) ?? otherId;
+              const relation = edge.label ?? edge.type;
+              return (
+                <li
+                  key={edge.id}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'baseline',
+                    gap: 'var(--space-sm)',
+                    padding: 'var(--space-xs) 0',
+                    fontSize: 'var(--font-xs)',
+                    borderBottom: '1px solid var(--color-border-light)',
+                  }}
+                >
+                  <span
+                    style={{
+                      flexShrink: 0,
+                      padding: '1px var(--space-xs)',
+                      color: 'var(--color-accent)',
+                      background: 'var(--color-accent-light)',
+                      borderRadius: 'var(--radius-sm)',
+                    }}
+                  >
+                    {isSource ? '→' : '←'} {relation}
+                  </span>
+                  <span style={{ color: 'var(--color-text-primary)' }}>
+                    {otherName}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
+
       {/* 无详情数据时的友好提示 */}
-      {detail == null && !node.refId && !node.meta && (
+      {detail == null && !node.refId && !node.meta && relatedEdges.length === 0 && (
         <div
           style={{
             padding: 'var(--space-sm)',
