@@ -1,7 +1,12 @@
 // 工商资料 Agent：POST /api/query
 // 返回风险、企业需求、网络舆情与财务情况，供 graph-builder 汇总整体报告
 import { NextRequest, NextResponse } from 'next/server';
-import { createVectorStore, matchEnterpriseByQuery, qichachaClient } from '@ai/shared';
+import {
+  createVectorStore,
+  getDataSource,
+  matchEnterpriseByQuery,
+  qichachaClient,
+} from '@ai/shared';
 import type {
   AgentQueryRequest,
   AgentQueryResponse,
@@ -19,6 +24,10 @@ async function resolveEnterpriseId(query: string, enterpriseId?: string): Promis
   const matched = await qichachaClient.searchEnterprise(query);
   if (matched.length > 0) {
     return (matched.find((c) => c.name === query) ?? matched[0]).id;
+  }
+  // real 模式走企查查模糊搜索（含品牌/简称），无全量列表可回退
+  if (getDataSource('business') === 'real') {
+    return undefined;
   }
   const all = await qichachaClient.searchEnterprise('');
   return matchEnterpriseByQuery(query, all)?.id;

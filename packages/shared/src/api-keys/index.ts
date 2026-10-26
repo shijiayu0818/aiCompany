@@ -65,6 +65,29 @@ export function getQichachaConfig(): QichachaConfig {
   };
 }
 
+// ===== 数据源模式 =====
+export type DataSourceMode = 'mock' | 'real';
+
+/** 数据源作用域：支持按域覆盖全局 DATA_SOURCE */
+export type DataSourceScope =
+  | 'company'
+  | 'graph'
+  | 'business'
+  | 'qichacha';
+
+/**
+ * 解析指定作用域的数据源模式。
+ * 优先读取 <SCOPE>_DATA_SOURCE（如 GRAPH_DATA_SOURCE）覆盖，否则回退全局 DATA_SOURCE，默认 mock。
+ * 延迟读取，禁止模块 import 期调用。
+ */
+export function getDataSource(scope?: DataSourceScope): DataSourceMode {
+  if (scope) {
+    const override = process.env[`${scope.toUpperCase()}_DATA_SOURCE`];
+    if (override === 'mock' || override === 'real') return override;
+  }
+  return process.env.DATA_SOURCE === 'real' ? 'real' : 'mock';
+}
+
 // ===== Neo4j 配置 =====
 export interface Neo4jConfig {
   uri: string;

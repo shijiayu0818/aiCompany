@@ -2,7 +2,13 @@
 // Mock 模式走 @ai/shared 的 getRelations，real 模式走 neo4jStore.getRelations
 // 返回 GraphData（{ nodes, edges }），供 Supervisor 的 graph-builder 直接解析合并
 import { NextRequest, NextResponse } from 'next/server';
-import { getRelations, matchEnterpriseByQuery, neo4jStore, qichachaClient } from '@ai/shared';
+import {
+  getDataSource,
+  getRelations,
+  matchEnterpriseByQuery,
+  neo4jStore,
+  qichachaClient,
+} from '@ai/shared';
 import type { AgentQueryRequest, AgentQueryResponse, GraphData } from '@ai/shared';
 
 /**
@@ -36,7 +42,7 @@ export async function POST(req: NextRequest) {
     }
 
     let graphData: GraphData;
-    if (process.env.DATA_SOURCE === 'real') {
+    if (getDataSource('graph') === 'real') {
       // real 模式：Neo4j 图数据库查询
       graphData = await neo4jStore.getRelations(targetId);
     } else {

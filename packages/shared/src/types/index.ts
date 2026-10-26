@@ -21,7 +21,8 @@ export type ChangeType =
   | '注册资本变更'
   | '经营范围变更'
   | '地址变更'
-  | '名称变更';
+  | '名称变更'
+  | '其他变更';
 
 export interface EntityChange {
   id: string;

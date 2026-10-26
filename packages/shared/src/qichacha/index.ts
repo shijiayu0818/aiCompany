@@ -1,6 +1,7 @@
-// 企查查预警通 API 封装
-// 开发阶段返回 Mock 数据，生产阶段通过 DATA_SOURCE=real 调用真实 API
-import { getQichachaConfig } from '../api-keys';
+// 企查查数据源封装：经 MCP 协议调用企查查智能体平台（agent.qcc.com）
+// 开发阶段返回 Mock 数据，DATA_SOURCE=real 时走 MCP 工具调用
+import { getDataSource } from '../api-keys';
+import { callQccTool } from '../mcp/qcc-client';
 import type {
   BusinessNeed,
   Enterprise,
@@ -18,129 +19,106 @@ import {
   getFinancialsByEnterprise,
   getNeedsByEnterprise,
 } from '../mock-data';
+import {
+  extractCompanyNameHint,
+  mapCompanyByQuery,
+  mapRegistrationInfo,
+  mapChangeRecords,
+  mapRiskScan,
+  mapNewsSentiment,
+  mapFinancialData,
+} from './mcp-mapping';
 
 export class QichachaClient {
-  private apiKey = '';
-  private baseURL = '';
-  private configLoaded = false;
-
   /**
-   * 延迟加载企查查配置
-   * mock 模式不依赖 API Key，避免模块导入期即抛错导致整个 Agent 无法启动
-   */
-  private ensureConfig(): void {
-    if (this.configLoaded) return;
-    const config = getQichachaConfig();
-    this.apiKey = config.apiKey;
-    this.baseURL = config.baseURL;
-    this.configLoaded = true;
-  }
-
-  /**
-   * 搜索企业（按名称或信用代码）
-   * 开发阶段返回 Mock，生产阶段调企查查 API
+   * 搜索企业（支持全称、简称、品牌名模糊搜索）
+   * 返回候选列表（可能多候选），调用方按精确名称匹配或取首位
    */
   async searchEnterprise(keyword: string): Promise<Enterprise[]> {
-    // 开发阶段：返回 Mock 数据
-    if (process.env.DATA_SOURCE !== 'real') {
+    if (getDataSource('qichacha') !== 'real') {
       return searchEnterprises(keyword);
     }
-    this.ensureConfig();
-    // 生产阶段：调用企查查 API
-    const res = await fetch(`${this.baseURL}/api/search`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Token: this.apiKey,
-      },
-      body: JSON.stringify({ keyword }),
+    const raw = await callQccTool('company', 'get_company_by_query', {
+      searchKey: keyword,
     });
-    if (!res.ok) {
-      throw new Error(`企查查 API 调用失败: ${res.status}`);
+    const mapped = mapCompanyByQuery(raw);
+    if (mapped.length > 0) return mapped;
+    // 原文搜索无结果时，从自然语言查询中提取企业名重试一次
+    //（应对 Supervisor 透传整句查询的情况）
+    const hint = extractCompanyNameHint(keyword);
+    if (hint && hint !== keyword) {
+      const retryRaw = await callQccTool('company', 'get_company_by_query', {
+        searchKey: hint,
+      });
+      return mapCompanyByQuery(retryRaw);
     }
-    const data = await res.json();
-    return data.result ?? [];
+    return [];
   }
 
-  /**
-   * 获取企业详情
-   */
+  /** 获取企业详情（searchKey 为完整企业名称或 18 位统一社会信用代码） */
   async getEnterpriseDetail(id: string): Promise<Enterprise | undefined> {
-    if (process.env.DATA_SOURCE !== 'real') {
+    if (getDataSource('qichacha') !== 'real') {
       return getEnterpriseById(id);
     }
-    this.ensureConfig();
-    const res = await fetch(`${this.baseURL}/api/detail`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Token: this.apiKey },
-      body: JSON.stringify({ id }),
+    const raw = await callQccTool('company', 'get_company_registration_info', {
+      searchKey: id,
     });
-    if (!res.ok) throw new Error(`企查查 API 调用失败: ${res.status}`);
-    const data = await res.json();
-    return data.result;
+    return mapRegistrationInfo(raw);
   }
 
-  /**
-   * 获取企业风险信息
-   */
+  /** 获取企业风险信息：risk_scan 一次扫描 35 项风险因子 */
   async getRiskInfo(enterpriseId: string): Promise<RiskItem[]> {
-    if (process.env.DATA_SOURCE !== 'real') {
+    if (getDataSource('qichacha') !== 'real') {
       return getRisksByEnterprise(enterpriseId);
     }
-    this.ensureConfig();
-    const res = await fetch(`${this.baseURL}/api/risk`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Token: this.apiKey },
-      body: JSON.stringify({ enterpriseId }),
+    const raw = await callQccTool('risk', 'get_company_risk_scan', {
+      searchKey: enterpriseId,
     });
-    if (!res.ok) throw new Error(`企查查 API 调用失败: ${res.status}`);
-    const data = await res.json();
-    return data.result ?? [];
+    return mapRiskScan(raw, enterpriseId);
   }
 
-  /** 获取工商变更记录（real 模式调用企查查变更接口） */
+  /** 获取工商变更记录 */
   async getChangeHistory(enterpriseId: string): Promise<EntityChange[]> {
-    if (process.env.DATA_SOURCE !== 'real') {
+    if (getDataSource('qichacha') !== 'real') {
       return getChangesByEnterprise(enterpriseId);
     }
-    return this.postReal<EntityChange>('/api/change', { enterpriseId });
+    const raw = await callQccTool('company', 'get_change_records', {
+      searchKey: enterpriseId,
+    });
+    return mapChangeRecords(raw, enterpriseId);
   }
 
   /** 获取企业网络舆情 */
   async getPublicOpinions(enterpriseId: string): Promise<PublicOpinionItem[]> {
-    if (process.env.DATA_SOURCE !== 'real') {
+    if (getDataSource('qichacha') !== 'real') {
       return getOpinionsByEnterprise(enterpriseId);
     }
-    return this.postReal<PublicOpinionItem>('/api/opinion', { enterpriseId });
+    const raw = await callQccTool('operation', 'get_news_sentiment', {
+      searchKey: enterpriseId,
+    });
+    return mapNewsSentiment(raw, enterpriseId);
   }
 
-  /** 获取企业财务快照 */
+  /** 获取企业财务快照（未披露财务数据的主体返回空数组） */
   async getFinancials(enterpriseId: string): Promise<FinancialSnapshot[]> {
-    if (process.env.DATA_SOURCE !== 'real') {
+    if (getDataSource('qichacha') !== 'real') {
       return getFinancialsByEnterprise(enterpriseId);
     }
-    return this.postReal<FinancialSnapshot>('/api/finance', { enterpriseId });
+    const raw = await callQccTool('company', 'get_financial_data', {
+      searchKey: enterpriseId,
+    });
+    return mapFinancialData(raw, enterpriseId);
   }
 
-  /** 获取企业需求 */
+  /**
+   * 获取企业需求
+   * 企查查 MCP 暂无直接对应的企业需求工具（融资记录/招聘信息为需求线索，待后续接入）
+   */
   async getBusinessNeeds(enterpriseId: string): Promise<BusinessNeed[]> {
-    if (process.env.DATA_SOURCE !== 'real') {
+    if (getDataSource('qichacha') !== 'real') {
       return getNeedsByEnterprise(enterpriseId);
     }
-    return this.postReal<BusinessNeed>('/api/need', { enterpriseId });
-  }
-
-  /** real 模式通用 POST 请求 */
-  private async postReal<T>(path: string, body: unknown): Promise<T[]> {
-    this.ensureConfig();
-    const res = await fetch(`${this.baseURL}${path}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Token: this.apiKey },
-      body: JSON.stringify(body),
-    });
-    if (!res.ok) throw new Error(`企查查 API 调用失败: ${res.status}`);
-    const data = await res.json();
-    return data.result ?? [];
+    return [];
   }
 }
 

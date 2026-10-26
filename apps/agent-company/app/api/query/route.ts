@@ -2,7 +2,12 @@
 // 调用 @ai/shared 的 qichachaClient.searchEnterprise 检索企业基本信息
 // Mock/real 由 DATA_SOURCE 环境变量切换（在 qichachaClient 内部处理）
 import { NextRequest, NextResponse } from 'next/server';
-import { computeRiskFlags, matchEnterpriseByQuery, qichachaClient } from '@ai/shared';
+import {
+  computeRiskFlags,
+  getDataSource,
+  matchEnterpriseByQuery,
+  qichachaClient,
+} from '@ai/shared';
 import type {
   AgentQueryRequest,
   AgentQueryResponse,
@@ -22,7 +27,13 @@ async function resolveEnterprise(query: string, enterpriseId?: string): Promise<
   }
   const matched = await qichachaClient.searchEnterprise(query);
   if (matched.length > 0) {
-    return matched.find((c) => c.name === query) ?? matched[0];
+    const brief = matched.find((c) => c.name === query) ?? matched[0];
+    // 搜索简表不含注册资本/行业/地区等，用详情接口补全
+    return (await qichachaClient.getEnterpriseDetail(brief.id)) ?? brief;
+  }
+  // real 模式走企查查模糊搜索（含品牌/简称），无全量列表可回退
+  if (getDataSource('company') === 'real') {
+    return null;
   }
   const all = await qichachaClient.searchEnterprise('');
   return matchEnterpriseByQuery(query, all) ?? null;

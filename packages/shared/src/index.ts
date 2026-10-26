@@ -14,8 +14,24 @@ export {
   getLLMConfig,
   getQichachaConfig,
   getNeo4jConfig,
+  getDataSource,
 } from './api-keys';
-export type { ApiKeyName, LLMConfig, QichachaConfig, Neo4jConfig } from './api-keys';
+export type {
+  ApiKeyName,
+  LLMConfig,
+  QichachaConfig,
+  Neo4jConfig,
+  DataSourceMode,
+  DataSourceScope,
+} from './api-keys';
+
+// ===== 企查查 MCP 客户端 =====
+export {
+  listQccTools,
+  callQccTool,
+  closeQccClients,
+} from './mcp/qcc-client';
+export type { QccServerName, QccToolInfo } from './mcp/qcc-client';
 
 // ===== Mock 数据 =====
 export {
