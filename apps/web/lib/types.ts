@@ -1,6 +1,6 @@
 // 前端与服务端共享的类型定义（纯类型，无运行时代码）
 
-import type { GraphData } from '@ai/shared';
+import type { EnterpriseReport, GraphData } from '@ai/shared';
 
 // ===== SSE 事件类型 =====
 export type SSEEvent =
@@ -8,6 +8,7 @@ export type SSEEvent =
   | { type: 'supervisor'; data: SupervisorDecision }
   | { type: 'worker'; data: WorkerResult }
   | { type: 'graph'; data: { currentGraph: GraphData } }
+  | { type: 'report'; data: EnterpriseReport }
   | { type: 'done'; threadId: string }
   | { type: 'error'; message: string };
 

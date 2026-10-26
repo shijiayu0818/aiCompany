@@ -27,6 +27,8 @@ const SUPERVISOR_SYSTEM_PROMPT = `你是企业智能助手的调度主管（Supe
 
 决策规则：
 - 根据用户查询的意图，选择需要激活的 Agent（可多选）。
+- 只要查询涉及具体企业（包括用户仅输入企业名称），必须同时激活三个 Agent，以生成包含企业信息、关联企业、风险等级、企业需求、网络舆情、财务情况的整体查询报告。禁止只激活其中一个或两个。
+- 仅当查询与企业无关（如问候、闲聊）时，才可以全部不激活。
 - 为每个激活的 Agent 生成明确的查询语句。
 - 如果用户查询模糊（如"查个公司"），仍然输出决策，但在 reasoning 中说明需要用户补充企业名称。
 - 如果是多轮对话，结合历史消息理解上下文指代（如"它"、"这个公司"指的是上一轮提到的企业）。
@@ -53,15 +55,26 @@ export async function supervisorNode(
 
   const response = (await llm.invoke(messages)) as TaskDistribution;
 
+  // 企业相关查询统一激活三个 Worker，确保生成完整的企业整体查询报告
+  const needsFullReport =
+    response.needsCompanyInfo || response.needsGraph || response.needsBusiness;
+
   return {
     supervisorTask: response.taskDescription,
-    needsCompanyInfo: response.needsCompanyInfo,
+    needsCompanyInfo: needsFullReport,
     // LLM 结构化输出中 nullable 字段可能为 null，归一为 state 的 undefined 语义
-    companyQuery: response.companyQuery ?? undefined,
-    needsGraph: response.needsGraph,
-    graphQuery: response.graphQuery ?? undefined,
-    needsBusiness: response.needsBusiness,
-    businessQuery: response.businessQuery ?? undefined,
+    companyQuery: needsFullReport
+      ? (response.companyQuery ?? query)
+      : undefined,
+    needsGraph: needsFullReport,
+    graphQuery: needsFullReport
+      ? (response.graphQuery ?? `${query} 的关联企业、股权结构与任职关系`)
+      : undefined,
+    needsBusiness: needsFullReport,
+    businessQuery: needsFullReport
+      ? (response.businessQuery ??
+        `${query} 的工商变更、风险、企业需求、网络舆情与财务情况`)
+      : undefined,
     reasoning: response.reasoning,
   };
 }

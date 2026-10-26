@@ -1,9 +1,17 @@
 // 工商资料 Agent：POST /api/query
-// 调用 qichachaClient.getRiskInfo 获取结构化风险 + 向量库语义检索工商资料
-// 返回 RiskItem 数组（graph-builder 按数组统计各企业风险数）
+// 返回风险、企业需求、网络舆情与财务情况，供 graph-builder 汇总整体报告
 import { NextRequest, NextResponse } from 'next/server';
 import { createVectorStore, matchEnterpriseByQuery, qichachaClient } from '@ai/shared';
-import type { AgentQueryRequest, AgentQueryResponse, RiskItem, VectorDoc } from '@ai/shared';
+import type {
+  AgentQueryRequest,
+  AgentQueryResponse,
+  BusinessNeed,
+  BusinessQueryResult,
+  FinancialSnapshot,
+  PublicOpinionItem,
+  RiskItem,
+  VectorDoc,
+} from '@ai/shared';
 
 /** 从查询文本解析企业：enterpriseId 指定 > 精确名称 > 前向搜索首位 > 企业全名包含于查询文本 */
 async function resolveEnterpriseId(query: string, enterpriseId?: string): Promise<string | undefined> {
@@ -53,6 +61,15 @@ function docsToRisks(docs: VectorDoc[], existing: RiskItem[]): RiskItem[] {
   return result;
 }
 
+/** 单类数据加载失败时降级为空数组，不阻塞整体报告 */
+async function safeLoad<T>(loader: () => Promise<T[]>, fallback: T[]): Promise<T[]> {
+  try {
+    return await loader();
+  } catch {
+    return fallback;
+  }
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = (await req.json()) as Partial<AgentQueryRequest>;
@@ -64,17 +81,37 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // 1. 解析目标企业并获取结构化风险
+    // 1. 解析目标企业
     const targetId = await resolveEnterpriseId(query, body.enterpriseId);
-    const risks: RiskItem[] = targetId ? await qichachaClient.getRiskInfo(targetId) : [];
+    if (!targetId) {
+      return NextResponse.json<AgentQueryResponse>({
+        success: false,
+        error: `未找到匹配企业: ${query}`,
+      });
+    }
 
-    // 2. 向量库检索工商资料，补充非结构化风险描述
-    const docs = await searchBusinessDocs(query);
-    const merged = [...risks, ...docsToRisks(docs, risks)];
+    // 2. 并行加载风险、需求、舆情、财务；单类数据失败不阻塞整体
+    const [risks, needs, opinions, financials, docs] = await Promise.all([
+      safeLoad(() => qichachaClient.getRiskInfo(targetId), [] as RiskItem[]),
+      safeLoad(() => qichachaClient.getBusinessNeeds(targetId), [] as BusinessNeed[]),
+      safeLoad(() => qichachaClient.getPublicOpinions(targetId), [] as PublicOpinionItem[]),
+      safeLoad(() => qichachaClient.getFinancials(targetId), [] as FinancialSnapshot[]),
+      searchBusinessDocs(query),
+    ]);
 
-    return NextResponse.json<AgentQueryResponse<RiskItem[]>>({
+    // 3. 向量库检索工商资料，补充非结构化风险描述
+    const mergedRisks = [...risks, ...docsToRisks(docs, risks)];
+
+    const result: BusinessQueryResult = {
+      risks: mergedRisks,
+      needs,
+      opinions,
+      financials,
+    };
+
+    return NextResponse.json<AgentQueryResponse<BusinessQueryResult>>({
       success: true,
-      data: merged,
+      data: result,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

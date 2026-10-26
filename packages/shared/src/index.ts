@@ -22,11 +22,22 @@ export {
   mockCompanies,
   mockRelations,
   mockRisks,
+  mockChanges,
+  mockOpinions,
+  mockFinancials,
+  mockNeeds,
   searchEnterprises,
   getEnterpriseById,
   getRelations,
   getRisksByEnterprise,
+  getChangesByEnterprise,
+  getOpinionsByEnterprise,
+  getFinancialsByEnterprise,
+  getNeedsByEnterprise,
 } from './mock-data';
+
+// ===== 变更预警 =====
+export { computeRiskFlags } from './risk/change-alert';
 
 // ===== 企业名匹配 =====
 export { matchEnterpriseByQuery } from './enterprise-match';

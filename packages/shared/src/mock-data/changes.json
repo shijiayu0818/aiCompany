@@ -1,0 +1,122 @@
+[
+  {
+    "id": "change1",
+    "enterpriseId": "e6",
+    "type": "法定代表人变更",
+    "date": "2025-11-05",
+    "before": "张勇",
+    "after": "蔡崇信"
+  },
+  {
+    "id": "change2",
+    "enterpriseId": "e6",
+    "type": "法定代表人变更",
+    "date": "2026-02-20",
+    "before": "蔡崇信",
+    "after": "张勇"
+  },
+  {
+    "id": "change3",
+    "enterpriseId": "e6",
+    "type": "法定代表人变更",
+    "date": "2026-07-15",
+    "before": "张勇",
+    "after": "吴泳铭"
+  },
+  {
+    "id": "change4",
+    "enterpriseId": "e6",
+    "type": "股东变更",
+    "date": "2026-03-01",
+    "before": "Alibaba Group Holding Limited",
+    "after": "Alibaba Group Holding Limited 等 3 名股东"
+  },
+  {
+    "id": "change5",
+    "enterpriseId": "e6",
+    "type": "股东变更",
+    "date": "2026-05-10",
+    "before": "淘宝控股有限公司",
+    "after": "浙江天猫技术有限公司"
+  },
+  {
+    "id": "change6",
+    "enterpriseId": "e6",
+    "type": "股东变更",
+    "date": "2026-08-08",
+    "before": "浙江天猫技术有限公司",
+    "after": "阿里巴巴（中国）网络技术有限公司"
+  },
+  {
+    "id": "change7",
+    "enterpriseId": "e7",
+    "type": "经营范围变更",
+    "date": "2025-04-02",
+    "before": "互联网技术服务",
+    "after": "互联网技术服务、数据处理与存储支持服务"
+  },
+  {
+    "id": "change8",
+    "enterpriseId": "e7",
+    "type": "注册资本变更",
+    "date": "2025-06-11",
+    "before": "8000万元",
+    "after": "10000万元"
+  },
+  {
+    "id": "change9",
+    "enterpriseId": "e8",
+    "type": "股东变更",
+    "date": "2026-01-20",
+    "before": "阿里巴巴集团",
+    "after": "阿里巴巴（中国）有限公司"
+  },
+  {
+    "id": "change10",
+    "enterpriseId": "e8",
+    "type": "股东变更",
+    "date": "2026-06-18",
+    "before": "阿里巴巴（中国）有限公司",
+    "after": "淘宝控股有限公司"
+  },
+  {
+    "id": "change11",
+    "enterpriseId": "e8",
+    "type": "股东变更",
+    "date": "2026-09-30",
+    "before": "淘宝控股有限公司",
+    "after": "浙江天猫技术有限公司"
+  },
+  {
+    "id": "change12",
+    "enterpriseId": "e1",
+    "type": "法定代表人变更",
+    "date": "2026-02-14",
+    "before": "李伟",
+    "after": "张明远"
+  },
+  {
+    "id": "change13",
+    "enterpriseId": "e1",
+    "type": "经营范围变更",
+    "date": "2026-03-20",
+    "before": "人工智能技术研发",
+    "after": "人工智能技术研发、行业智能体解决方案"
+  },
+  {
+    "id": "change14",
+    "enterpriseId": "e1",
+    "type": "注册资本变更",
+    "date": "2026-05-01",
+    "before": "30000万元",
+    "after": "50000万元"
+  },
+  {
+    "id": "change15",
+    "enterpriseId": "e3",
+    "type": "股东变更",
+    "date": "2026-04-12",
+    "before": "王建国",
+    "after": "王建国、深圳鸿图投资控股有限公司"
+  }
+]

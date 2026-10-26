@@ -1,6 +1,6 @@
 import { Annotation, messagesStateReducer } from '@langchain/langgraph';
 import { BaseMessage } from '@langchain/core/messages';
-import type { GraphData } from '@ai/shared';
+import type { EnterpriseReport, GraphData } from '@ai/shared';
 
 export const SupervisorStateAnnotation = Annotation.Root({
   // 多轮对话消息历史
@@ -65,6 +65,12 @@ export const SupervisorStateAnnotation = Annotation.Root({
 
   // ===== 最终图谱数据 =====
   currentGraph: Annotation<GraphData | undefined>({
+    reducer: (curr, next) => next ?? curr,
+    default: () => undefined,
+  }),
+
+  // ===== 企业整体查询报告（企业信息 / 关联企业 / 风险 / 需求 / 舆情 / 财务） =====
+  currentReport: Annotation<EnterpriseReport | undefined>({
     reducer: (curr, next) => next ?? curr,
     default: () => undefined,
   }),

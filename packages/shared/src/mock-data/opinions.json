@@ -1,0 +1,92 @@
+[
+  {
+    "id": "opinion1",
+    "enterpriseId": "e6",
+    "title": "阿里云发布新一代通义千问大模型",
+    "summary": "阿里云在云栖大会发布新一代通义千问模型，并宣布向开发者开放多项能力。",
+    "sentiment": "positive",
+    "source": "科技日报",
+    "date": "2026-09-12"
+  },
+  {
+    "id": "opinion2",
+    "enterpriseId": "e6",
+    "title": "平台经济反垄断监管持续受到关注",
+    "summary": "监管机构重申平台经济公平竞争要求，市场关注头部平台的历史合规整改情况。",
+    "sentiment": "negative",
+    "source": "市场监管总局",
+    "date": "2026-04-10"
+  },
+  {
+    "id": "opinion3",
+    "enterpriseId": "e6",
+    "title": "阿里巴巴发布年度业绩，营收保持增长",
+    "summary": "财报显示电商与云业务收入稳步增长，管理层表示将继续加大 AI 基础设施投入。",
+    "sentiment": "positive",
+    "source": "财经网",
+    "date": "2026-05-20"
+  },
+  {
+    "id": "opinion4",
+    "enterpriseId": "e6",
+    "title": "部分商家反映平台佣金与流量成本压力",
+    "summary": "有商家在公开渠道反映平台运营成本上升，希望平台进一步优化扶持政策。",
+    "sentiment": "negative",
+    "source": "电商报",
+    "date": "2026-03-08"
+  },
+  {
+    "id": "opinion5",
+    "enterpriseId": "e6",
+    "title": "阿里巴巴与中国多家制造业企业达成数字化合作",
+    "summary": "双方将在智能制造、供应链协同等领域开展合作，推动传统产业数字化升级。",
+    "sentiment": "positive",
+    "source": "新华社",
+    "date": "2026-08-02"
+  },
+  {
+    "id": "opinion6",
+    "enterpriseId": "e7",
+    "title": "阿里巴巴（中国）完成年度合规自查",
+    "summary": "公司披露年度合规自查结果，未发现重大违法违规事项。",
+    "sentiment": "neutral",
+    "source": "企业公告",
+    "date": "2026-06-30"
+  },
+  {
+    "id": "opinion7",
+    "enterpriseId": "e7",
+    "title": "广告宣传用语不规范被责令整改",
+    "summary": "监管部门就部分广告宣传用语提出整改要求，公司已完成整改。",
+    "sentiment": "negative",
+    "source": "市场监督管理局",
+    "date": "2025-05-20"
+  },
+  {
+    "id": "opinion8",
+    "enterpriseId": "e8",
+    "title": "淘宝推出多项中小商家扶持计划",
+    "summary": "平台宣布降低部分类目服务费率，并加大对中小商家的流量扶持。",
+    "sentiment": "positive",
+    "source": "电商报",
+    "date": "2026-07-18"
+  },
+  {
+    "id": "opinion9",
+    "enterpriseId": "e1",
+    "title": "星辰智能发布行业智能体平台",
+    "summary": "公司发布面向制造、金融行业的智能体平台，已与多家头部客户达成合作。",
+    "sentiment": "positive",
+    "source": "中国工业报",
+    "date": "2026-06-16"
+  },
+  {
+    "id": "opinion10",
+    "enterpriseId": "e11",
+    "title": "蚂蚁集团推进数字普惠金融合作",
+    "summary": "公司与多家金融机构深化合作，探索面向小微企业的数字普惠金融方案。",
+    "sentiment": "positive",
+    "source": "金融时报",
+    "date": "2026-05-09"
+  }
+]

@@ -17,6 +17,7 @@ export function makeState(overrides: Partial<SupervisorState> = {}): SupervisorS
     graphOutput: '',
     businessOutput: '',
     currentGraph: undefined,
+    currentReport: undefined,
     ...overrides,
   };
 }

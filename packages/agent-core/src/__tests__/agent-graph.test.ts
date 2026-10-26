@@ -87,9 +87,14 @@ describe('buildAgentGraph 条件路由', () => {
       }),
     });
     nodeMocks.business.mockResolvedValue({
-      businessOutput: JSON.stringify([
-        { id: 'risk1', enterpriseId: 'e1', type: '经营异常', level: 'yellow' },
-      ]),
+      businessOutput: JSON.stringify({
+        risks: [
+          { id: 'risk1', enterpriseId: 'e1', type: '经营异常', level: 'yellow' },
+        ],
+        needs: [],
+        opinions: [],
+        financials: [],
+      }),
     });
 
     const graph = buildAgentGraph();

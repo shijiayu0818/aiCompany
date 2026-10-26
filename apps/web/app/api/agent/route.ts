@@ -4,7 +4,7 @@ import { HumanMessage } from '@langchain/core/messages';
 import { getGraphInstance } from '../../../lib/graph-instance';
 import { createSSEResponse } from '../../../lib/sse';
 import type { SSEEvent, SupervisorDecision, WorkerResult } from '../../../lib/types';
-import type { GraphData } from '@ai/shared';
+import type { EnterpriseReport, GraphData } from '@ai/shared';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -89,6 +89,10 @@ export async function POST(req: NextRequest) {
             if (currentGraph) {
               yield { type: 'graph', data: { currentGraph } };
             }
+            const report = stateUpdate.currentReport as EnterpriseReport | undefined;
+            if (report) {
+              yield { type: 'report', data: report };
+            }
           }
         }
       }
@@ -125,6 +129,7 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({
     threadId,
     currentGraph: state.currentGraph,
+    currentReport: state.currentReport,
     reasoning: state.reasoning,
     supervisorTask: state.supervisorTask,
   });

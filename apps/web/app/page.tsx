@@ -10,7 +10,8 @@ import { ChatInput } from '../components/ChatInput';
 import { SessionList } from '../components/SessionList';
 import { AgentProcess } from '../components/AgentProcess';
 import { NodeDetail } from '../components/NodeDetail';
-import type { GraphData, GraphNode } from '@ai/shared';
+import { EnterpriseReportPanel } from '../components/EnterpriseReport';
+import type { EnterpriseReport, GraphData, GraphNode } from '@ai/shared';
 import type {
   SSEEvent,
   SessionMeta,
@@ -45,6 +46,7 @@ const SESSIONS_KEY = 'ai-enterprise-sessions';
 /** GET /api/agent 返回的会话恢复数据 */
 interface SessionStateResponse {
   currentGraph?: GraphData;
+  currentReport?: EnterpriseReport;
   reasoning?: string;
   supervisorTask?: string;
 }
@@ -53,6 +55,7 @@ export default function HomePage() {
   const [sessions, setSessions] = useState<SessionMeta[]>([]);
   const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
   const [graphData, setGraphData] = useState<GraphData | null>(null);
+  const [report, setReport] = useState<EnterpriseReport | null>(null);
   const [process, setProcess] = useState<AgentProcessState | null>(null);
   const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
   const [loading, setLoading] = useState(false);
@@ -66,6 +69,7 @@ export default function HomePage() {
     }
     const data = (await response.json()) as SessionStateResponse;
     setGraphData(data.currentGraph ?? null);
+    setReport(data.currentReport ?? null);
     if (data.reasoning) {
       setProcess({
         supervisor: {
@@ -123,6 +127,7 @@ export default function HomePage() {
       if (!activeThreadId) {
         setActiveThreadId(threadId);
         setGraphData(null); // 新会话清空图谱
+        setReport(null);
       }
 
       // 更新会话列表
@@ -208,6 +213,9 @@ export default function HomePage() {
                   prev ? { ...prev, graphReady: true } : prev,
                 );
                 break;
+              case 'report':
+                setReport(event.data);
+                break;
               case 'error':
                 setError(event.message);
                 break;
@@ -229,6 +237,7 @@ export default function HomePage() {
     setSelectedNode(null);
     setProcess(null);
     setGraphData(null);
+    setReport(null);
 
     const current = sessions.find((s) => s.threadId === activeThreadId);
     // 当前已是空会话时直接复用，避免重复堆积
@@ -251,6 +260,7 @@ export default function HomePage() {
       setError(null);
       setProcess(null);
       setGraphData(null);
+      setReport(null);
 
       const meta = sessions.find((s) => s.threadId === threadId);
       // 尚未查询过的空会话无需恢复
@@ -291,6 +301,7 @@ export default function HomePage() {
           <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
             <GraphView data={graphData} onNodeClick={setSelectedNode} />
           </div>
+          <EnterpriseReportPanel report={report} />
           {error && (
             <div
               style={{

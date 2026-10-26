@@ -1,0 +1,75 @@
+[
+  {
+    "id": "need1",
+    "enterpriseId": "e6",
+    "type": "供应链合作",
+    "title": "跨境物流与仓储合作伙伴招募",
+    "description": "菜鸟网络寻求具备海外仓运营能力的物流服务商，重点覆盖东南亚与欧洲市场。",
+    "priority": "high",
+    "budget": "5000万元以上",
+    "deadline": "2026-12-31"
+  },
+  {
+    "id": "need2",
+    "enterpriseId": "e6",
+    "type": "数字化转型",
+    "title": "制造业客户数字化解决方案",
+    "description": "阿里云面向制造业客户提供智能工厂与供应链协同方案，寻找行业解决方案合作伙伴。",
+    "priority": "medium",
+    "budget": "面议",
+    "deadline": "2027-03-31"
+  },
+  {
+    "id": "need3",
+    "enterpriseId": "e6",
+    "type": "人才招聘",
+    "title": "大模型算法与 AI 基础设施人才",
+    "description": "持续招聘大模型训练、推理优化与 AI 基础设施方向的高级技术人才。",
+    "priority": "high"
+  },
+  {
+    "id": "need4",
+    "enterpriseId": "e7",
+    "type": "合规咨询",
+    "title": "平台经济合规与数据安全咨询",
+    "description": "需要专业机构提供平台经济反垄断、数据跨境与个人信息保护方面的合规咨询。",
+    "priority": "high",
+    "budget": "300万-500万元",
+    "deadline": "2026-11-30"
+  },
+  {
+    "id": "need5",
+    "enterpriseId": "e7",
+    "type": "市场拓展",
+    "title": "华东地区企业服务渠道合作",
+    "description": "寻找具备本地企业客户资源的渠道伙伴，共同拓展华东区域云与数字化服务市场。",
+    "priority": "medium"
+  },
+  {
+    "id": "need6",
+    "enterpriseId": "e8",
+    "type": "供应链合作",
+    "title": "中小商家供应链金融合作",
+    "description": "联合金融机构为平台中小商家提供供应链金融服务，提升商家资金周转效率。",
+    "priority": "medium",
+    "budget": "面议"
+  },
+  {
+    "id": "need7",
+    "enterpriseId": "e1",
+    "type": "融资需求",
+    "title": "B+ 轮融资用于行业智能体研发",
+    "description": "公司计划启动 B+ 轮融资，资金主要用于行业智能体产品研发与市场拓展。",
+    "priority": "high",
+    "budget": "3亿-5亿元",
+    "deadline": "2027-06-30"
+  },
+  {
+    "id": "need8",
+    "enterpriseId": "e1",
+    "type": "人才招聘",
+    "title": "行业解决方案架构师",
+    "description": "招聘制造、金融行业解决方案架构师，负责客户需求分析与方案设计。",
+    "priority": "medium"
+  }
+]

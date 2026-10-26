@@ -50,6 +50,7 @@ function buildStateForInjected(
     graphOutput: '',
     businessOutput: '',
     currentGraph: undefined,
+    currentReport: undefined,
   };
 }
 
@@ -76,12 +77,16 @@ function normalizeDecision(state: {
   };
 }
 
-/** 解析 businessOutput 中的风险 id 列表（safeParse + Array 兜底） */
+/** 解析 businessOutput 中的风险 id 列表（兼容 { risks } 对象结构） */
 export function extractRiskIds(businessOutput: string): string[] {
   try {
     const parsed = JSON.parse(businessOutput) as unknown;
-    if (!Array.isArray(parsed)) return [];
-    return parsed
+    const list = Array.isArray(parsed)
+      ? parsed
+      : Array.isArray((parsed as { risks?: unknown })?.risks)
+        ? ((parsed as { risks: unknown[] }).risks)
+        : [];
+    return list
       .map((r) => (typeof (r as RiskItem)?.id === 'string' ? (r as RiskItem).id : ''))
       .filter(Boolean);
   } catch {

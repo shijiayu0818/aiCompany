@@ -2,8 +2,13 @@
 // 调用 @ai/shared 的 qichachaClient.searchEnterprise 检索企业基本信息
 // Mock/real 由 DATA_SOURCE 环境变量切换（在 qichachaClient 内部处理）
 import { NextRequest, NextResponse } from 'next/server';
-import { matchEnterpriseByQuery, qichachaClient } from '@ai/shared';
-import type { AgentQueryRequest, AgentQueryResponse, Enterprise } from '@ai/shared';
+import { computeRiskFlags, matchEnterpriseByQuery, qichachaClient } from '@ai/shared';
+import type {
+  AgentQueryRequest,
+  AgentQueryResponse,
+  Enterprise,
+  EnterpriseDetail,
+} from '@ai/shared';
 
 /**
  * 从查询文本解析最佳匹配企业
@@ -42,9 +47,17 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    return NextResponse.json<AgentQueryResponse<Enterprise>>({
+    // 补充工商变更记录并计算变更预警（高频变更 / 频繁更换法人股东）
+    const changeHistory = await qichachaClient.getChangeHistory(enterprise.id);
+    const detail: EnterpriseDetail = {
+      ...enterprise,
+      changeHistory,
+      riskFlags: computeRiskFlags(changeHistory),
+    };
+
+    return NextResponse.json<AgentQueryResponse<EnterpriseDetail>>({
       success: true,
-      data: enterprise,
+      data: detail,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

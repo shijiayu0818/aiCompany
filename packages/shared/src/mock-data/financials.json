@@ -1,0 +1,68 @@
+[
+  {
+    "enterpriseId": "e6",
+    "year": 2024,
+    "revenue": "9411亿元",
+    "netProfit": "797亿元",
+    "totalAssets": "17600亿元",
+    "totalLiabilities": "7180亿元",
+    "debtRatio": 40.8,
+    "cashFlow": "1360亿元",
+    "currency": "CNY"
+  },
+  {
+    "enterpriseId": "e6",
+    "year": 2025,
+    "revenue": "9963亿元",
+    "netProfit": "1259亿元",
+    "totalAssets": "18800亿元",
+    "totalLiabilities": "7350亿元",
+    "debtRatio": 39.1,
+    "cashFlow": "1580亿元",
+    "currency": "CNY"
+  },
+  {
+    "enterpriseId": "e7",
+    "year": 2025,
+    "revenue": "6120亿元",
+    "netProfit": "680亿元",
+    "totalAssets": "9800亿元",
+    "totalLiabilities": "4020亿元",
+    "debtRatio": 41.0,
+    "cashFlow": "860亿元",
+    "currency": "CNY"
+  },
+  {
+    "enterpriseId": "e8",
+    "year": 2025,
+    "revenue": "3280亿元",
+    "netProfit": "412亿元",
+    "totalAssets": "5100亿元",
+    "totalLiabilities": "1960亿元",
+    "debtRatio": 38.4,
+    "cashFlow": "520亿元",
+    "currency": "CNY"
+  },
+  {
+    "enterpriseId": "e1",
+    "year": 2024,
+    "revenue": "18.6亿元",
+    "netProfit": "2.4亿元",
+    "totalAssets": "42.0亿元",
+    "totalLiabilities": "15.8亿元",
+    "debtRatio": 37.6,
+    "cashFlow": "3.1亿元",
+    "currency": "CNY"
+  },
+  {
+    "enterpriseId": "e1",
+    "year": 2025,
+    "revenue": "26.3亿元",
+    "netProfit": "3.8亿元",
+    "totalAssets": "55.4亿元",
+    "totalLiabilities": "19.2亿元",
+    "debtRatio": 34.7,
+    "cashFlow": "4.6亿元",
+    "currency": "CNY"
+  }
+]

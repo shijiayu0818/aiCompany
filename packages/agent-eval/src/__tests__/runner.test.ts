@@ -79,15 +79,20 @@ const idleCase: EvalCase = {
 };
 
 describe('extractRiskIds', () => {
-  it('解析 RiskItem 数组提取 id', () => {
-    const out = JSON.stringify([
-      { id: 'risk1', enterpriseId: 'e1' },
-      { id: 'risk2', enterpriseId: 'e1' },
-    ]);
+  it('解析 { risks } 对象结构提取 id', () => {
+    const out = JSON.stringify({
+      risks: [
+        { id: 'risk1', enterpriseId: 'e1' },
+        { id: 'risk2', enterpriseId: 'e1' },
+      ],
+      needs: [],
+      opinions: [],
+      financials: [],
+    });
     expect(extractRiskIds(out)).toEqual(['risk1', 'risk2']);
   });
 
-  it('非数组输出返回空（graph-builder 同款兜底）', () => {
+  it('无 risks 字段的输出返回空（graph-builder 同款兜底）', () => {
     expect(extractRiskIds('{}')).toEqual([]);
     expect(extractRiskIds('"str"')).toEqual([]);
   });
