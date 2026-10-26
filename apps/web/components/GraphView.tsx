@@ -81,6 +81,9 @@ export function GraphView({ data, loading = false, onNodeClick }: GraphViewProps
   // 初始化是异步的，期间数据可能已到达，用 ref 保证初始化时使用最新数据
   const dataRef = useRef(data);
   const [exporting, setExporting] = useState(false);
+  // 空格按住状态（蓝湖/Figma 风格：按住空格鼠标拖拽平移画布）
+  const spaceHeldRef = useRef(false);
+  const spacePanActiveRef = useRef(false);
 
   // 保持回调引用最新（避免重建图实例）
   useEffect(() => {
@@ -141,7 +144,7 @@ export function GraphView({ data, loading = false, onNodeClick }: GraphViewProps
           manyBody: { strength: -200 },
           link: { distance: 80 },
         },
-        behaviors: ['drag-canvas', 'zoom-canvas', 'drag-element'],
+        behaviors: ['zoom-canvas', 'drag-element'],
       });
 
       // G6 v5 事件 target 是元素而非业务数据，统一按 id 回查最新业务节点
@@ -174,6 +177,95 @@ export function GraphView({ data, loading = false, onNodeClick }: GraphViewProps
       graphRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // 空格键 + 鼠标拖拽平移画布（蓝湖/Figma 风格）
+  // 默认禁用 drag-canvas，让节点点击优先；按住空格时手动实现画布平移
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const isTypingElement = (el: Element | null) => {
+      if (!el) return false;
+      const tag = el.tagName?.toLowerCase();
+      return (
+        tag === 'input' ||
+        tag === 'textarea' ||
+        tag === 'select' ||
+        (el as HTMLElement).isContentEditable
+      );
+    };
+
+    let lastX = 0;
+    let lastY = 0;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.code !== 'Space') return;
+      if (isTypingElement(document.activeElement)) return;
+      if (spaceHeldRef.current) return;
+      e.preventDefault();
+      spaceHeldRef.current = true;
+      container.classList.add('g6-space-panning');
+    };
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.code !== 'Space') return;
+      if (!spaceHeldRef.current) return;
+      spaceHeldRef.current = false;
+      spacePanActiveRef.current = false;
+      container.classList.remove('g6-space-panning');
+    };
+
+    const handleMouseDown = (e: MouseEvent) => {
+      if (!spaceHeldRef.current) return;
+      const graph = graphRef.current;
+      if (!graph) return;
+      spacePanActiveRef.current = true;
+      lastX = e.clientX;
+      lastY = e.clientY;
+      e.preventDefault();
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!spaceHeldRef.current || !spacePanActiveRef.current) return;
+      const graph = graphRef.current;
+      if (!graph) return;
+      const dx = e.clientX - lastX;
+      const dy = e.clientY - lastY;
+      lastX = e.clientX;
+      lastY = e.clientY;
+      // G6 v5 translateBy 运行时接受 (dx, dy) 两个 number，类型声明有误
+      (graph as unknown as { translateBy: (dx: number, dy: number) => void }).translateBy(dx, dy);
+    };
+
+    const handleMouseUp = () => {
+      spacePanActiveRef.current = false;
+    };
+
+    const handleBlur = () => {
+      if (spaceHeldRef.current) {
+        spaceHeldRef.current = false;
+        spacePanActiveRef.current = false;
+        container.classList.remove('g6-space-panning');
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    window.addEventListener('blur', handleBlur);
+    container.addEventListener('mousedown', handleMouseDown);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+      window.removeEventListener('blur', handleBlur);
+      container.removeEventListener('mousedown', handleMouseDown);
+      container.classList.remove('g6-space-panning');
+    };
   }, []);
 
   // 容器尺寸变化（窗口缩放、侧栏折叠）时同步画布尺寸，保持图谱占满可用区域

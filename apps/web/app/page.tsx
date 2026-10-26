@@ -1,10 +1,10 @@
 'use client';
 
 // 主页面：三栏布局 + SSE 流式编排消费
-// 左 SessionList | 中 GraphView + AgentProcess + ChatInput | 右 NodeDetail
+// 左 SessionList | 中 消息列表（图谱+报告） + ChatInput | 右 NodeDetail
 // AGENTS.md: 多轮对话状态由 MemorySaver（threadId）管理，前端只做展示
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { ChatInput } from '../components/ChatInput';
 import { SessionList } from '../components/SessionList';
@@ -18,6 +18,18 @@ import type {
   AgentProcessState,
   ProcessStep,
 } from '../lib/types';
+
+/** 多轮消息数组：每条是一次完整查询的快照 */
+interface MessageEntry {
+  id: string;
+  query: string;
+  graphData: GraphData | null;
+  report: EnterpriseReport | null;
+  process: AgentProcessState | null;
+  animated: boolean;
+  loading: boolean;
+  error: string | null;
+}
 
 // G6 组件动态加载（ssr: false 避免 SSR 模块级 window 引用）
 const GraphView = dynamic(
@@ -70,14 +82,25 @@ function buildProgressText(process: AgentProcessState | null): string {
 export default function HomePage() {
   const [sessions, setSessions] = useState<SessionMeta[]>([]);
   const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
-  const [graphData, setGraphData] = useState<GraphData | null>(null);
-  const [report, setReport] = useState<EnterpriseReport | null>(null);
-  const [process, setProcess] = useState<AgentProcessState | null>(null);
+  // 多轮消息数组：每次提问 push 一条，历史消息为只读快照
+  const [messages, setMessages] = useState<MessageEntry[]>([]);
   const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  // 报告是否为本次查询新生成（控制标题打字机与板块渐入动画；会话恢复不动画）
-  const [reportAnimated, setReportAnimated] = useState(false);
+  // 消息列表容器 ref：用于自动滚到底部
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  /** 当前活动消息（最新一条） */
+  const activeMessage = messages[messages.length - 1] ?? null;
+
+  /** 更新最后一条消息的辅助 */
+  const updateActiveMessage = useCallback(
+    (updater: (prev: MessageEntry) => MessageEntry) => {
+      setMessages((prev) => {
+        if (prev.length === 0) return prev;
+        return [...prev.slice(0, -1), updater(prev[prev.length - 1])];
+      });
+    },
+    [],
+  );
 
   /** 从服务端持久化的检查点恢复指定会话的展示内容 */
   const loadSession = useCallback(async (threadId: string) => {
@@ -86,22 +109,32 @@ export default function HomePage() {
       throw new Error(`HTTP ${response.status}`);
     }
     const data = (await response.json()) as SessionStateResponse;
-    setGraphData(data.currentGraph ?? null);
-    setReport(data.currentReport ?? null);
-    if (data.reasoning) {
-      setProcess({
-        supervisor: {
-          taskDescription: data.supervisorTask ?? '',
-          needsCompanyInfo: false,
-          needsGraph: false,
-          needsBusiness: false,
-          reasoning: data.reasoning,
-        },
-        steps: [],
-        graphReady: !!data.currentGraph,
-      });
-    }
-  }, []);
+    const sessionMeta = sessions.find((s) => s.threadId === threadId);
+    const lastQuery = sessionMeta?.lastQuery ?? data.supervisorTask ?? '';
+    const restored: MessageEntry = {
+      id: threadId,
+      query: lastQuery,
+      graphData: data.currentGraph ?? null,
+      report: data.currentReport ?? null,
+      animated: false,
+      loading: false,
+      error: null,
+      process: data.reasoning
+        ? {
+            supervisor: {
+              taskDescription: data.supervisorTask ?? '',
+              needsCompanyInfo: false,
+              needsGraph: false,
+              needsBusiness: false,
+              reasoning: data.reasoning,
+            },
+            steps: [],
+            graphReady: !!data.currentGraph,
+          }
+        : null,
+    };
+    setMessages([restored]);
+  }, [sessions]);
 
   // 从 localStorage 恢复会话列表（初始化不自动恢复任何会话，保持新对话界面）
   useEffect(() => {
@@ -128,18 +161,29 @@ export default function HomePage() {
   /** 发送查询，消费 SSE 流 */
   const handleSend = useCallback(
     async (query: string) => {
-      setLoading(true);
-      setError(null);
-      setProcess({ steps: [], graphReady: false });
-      setSelectedNode(null);
-      setReportAnimated(false);
-
       const threadId = activeThreadId ?? crypto.randomUUID();
       if (!activeThreadId) {
         setActiveThreadId(threadId);
-        setGraphData(null); // 新会话清空图谱
-        setReport(null);
       }
+
+      // 1. push 新消息（loading=true、其余空），历史消息保留
+      const newEntry: MessageEntry = {
+        id: `${threadId}-${Date.now()}`,
+        query,
+        graphData: null,
+        report: null,
+        process: { steps: [], graphReady: false },
+        animated: false,
+        loading: true,
+        error: null,
+      };
+      setMessages((prev) => [...prev, newEntry]);
+      setSelectedNode(null);
+
+      // 自动滚到底部
+      requestAnimationFrame(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      });
 
       // 更新会话列表
       setSessions((prev) => {
@@ -177,7 +221,7 @@ export default function HomePage() {
         const decoder = new TextDecoder();
         let buffer = '';
 
-        // 逐块解析 SSE 事件
+        // 逐块解析 SSE 事件，只更新最后一条（活动）消息
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
@@ -202,59 +246,71 @@ export default function HomePage() {
                   steps.push({ node: 'graph_node', label: '客户图谱', status: 'pending' });
                 if (event.data.needsBusiness)
                   steps.push({ node: 'business_node', label: '工商资料', status: 'pending' });
-                setProcess({ supervisor: event.data, steps, graphReady: false });
+                updateActiveMessage((prev) => ({
+                  ...prev,
+                  process: { supervisor: event.data, steps, graphReady: false },
+                }));
                 break;
               }
               case 'worker':
-                setProcess((prev) => {
-                  if (!prev) return prev;
+                updateActiveMessage((prev) => {
+                  if (!prev.process) return prev;
                   return {
                     ...prev,
-                    steps: prev.steps.map((s) =>
-                      s.node === event.data.node
-                        ? { ...s, status: event.data.status, output: event.data.output }
-                        : s,
-                    ),
+                    process: {
+                      ...prev.process,
+                      steps: prev.process.steps.map((s) =>
+                        s.node === event.data.node
+                          ? { ...s, status: event.data.status, output: event.data.output }
+                          : s,
+                      ),
+                    },
                   };
                 });
                 break;
               case 'graph':
-                setGraphData(event.data.currentGraph);
-                setProcess((prev) =>
-                  prev ? { ...prev, graphReady: true } : prev,
-                );
+                updateActiveMessage((prev) => ({
+                  ...prev,
+                  graphData: event.data.currentGraph,
+                  process: prev.process
+                    ? { ...prev.process, graphReady: true }
+                    : prev.process,
+                }));
                 break;
               case 'report':
-                setReport(event.data);
-                setReportAnimated(true);
+                updateActiveMessage((prev) => ({
+                  ...prev,
+                  report: event.data,
+                  animated: true,
+                }));
                 break;
               case 'error':
-                setError(event.message);
+                updateActiveMessage((prev) => ({
+                  ...prev,
+                  error: event.message,
+                }));
                 break;
             }
           }
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : String(err));
+        const message = err instanceof Error ? err.message : String(err);
+        updateActiveMessage((prev) => ({ ...prev, error: message }));
       } finally {
-        setLoading(false);
+        updateActiveMessage((prev) => ({ ...prev, loading: false }));
       }
     },
-    [activeThreadId],
+    [activeThreadId, updateActiveMessage],
   );
 
   /** 新建会话：复用已有空会话并置顶，或创建新空会话 */
   const handleNewSession = useCallback(() => {
-    setError(null);
     setSelectedNode(null);
-    setProcess(null);
-    setGraphData(null);
-    setReport(null);
+    setMessages([]);
 
     // 查找已有空会话（未发送过查询的）
     const emptySession = sessions.find((s) => !s.lastQuery);
     if (emptySession) {
-      // 复用空会话：移到第一位并选中
       setActiveThreadId(emptySession.threadId);
       setSessions((prev) => [
         emptySession,
@@ -277,14 +333,10 @@ export default function HomePage() {
     (threadId: string) => {
       setSessions((prev) => {
         const next = prev.filter((s) => s.threadId !== threadId);
-        // 如果删除的是当前会话，清空展示并选中剩余第一个（如有）
         if (threadId === activeThreadId) {
           setActiveThreadId(next[0]?.threadId ?? null);
           setSelectedNode(null);
-          setProcess(null);
-          setGraphData(null);
-          setReport(null);
-          setError(null);
+          setMessages([]);
         }
         return next;
       });
@@ -298,10 +350,7 @@ export default function HomePage() {
       if (threadId === activeThreadId) return;
       setActiveThreadId(threadId);
       setSelectedNode(null);
-      setError(null);
-      setProcess(null);
-      setGraphData(null);
-      setReport(null);
+      setMessages([]);
 
       const meta = sessions.find((s) => s.threadId === threadId);
       // 尚未查询过的空会话无需恢复
@@ -310,7 +359,7 @@ export default function HomePage() {
       try {
         await loadSession(threadId);
       } catch {
-        setError('该会话的历史状态不存在或已过期');
+        // 恢复失败，保留空消息列表
       }
     },
     [activeThreadId, sessions, loadSession],
@@ -340,44 +389,145 @@ export default function HomePage() {
           />
         </aside>
         <section className="app-center">
-          <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
-            <GraphView data={graphData} loading={loading} onNodeClick={setSelectedNode} />
+          {/* 消息列表区：可滚动，历史消息向上滑走 */}
+          <div className="app-messages">
+            {messages.length === 0 && (
+              <div className="app-empty-hint">
+                输入查询开始对话
+              </div>
+            )}
+            {messages.map((msg) => (
+              <MessageBlock
+                key={msg.id}
+                entry={msg}
+                isActive={msg.id === activeMessage?.id}
+                onNodeClick={setSelectedNode}
+              />
+            ))}
+            <div ref={messagesEndRef} />
           </div>
-          <EnterpriseReportPanel
-            report={report}
-            streaming={loading}
-            progressText={buildProgressText(process)}
-            animated={reportAnimated}
+          {/* 输入框固定底部 */}
+          <ChatInput
+            onSend={handleSend}
+            loading={activeMessage?.loading ?? false}
           />
-          {error && (
-            <div
-              style={{
-                padding: 'var(--space-sm) var(--space-md)',
-                fontSize: 'var(--font-sm)',
-                color: 'var(--color-danger)',
-                background: 'rgba(239, 68, 68, 0.1)',
-                borderTop: '1px solid var(--color-border)',
-              }}
-            >
-              {error}
-            </div>
-          )}
-          <div
-            style={{
-              maxHeight: 200,
-              overflowY: 'auto',
-              borderTop: '1px solid var(--color-border)',
-              background: 'var(--color-bg-secondary)',
-            }}
-          >
-            <AgentProcess process={process} />
-          </div>
-          <ChatInput onSend={handleSend} loading={loading} />
         </section>
         <aside className="app-detail">
-          <NodeDetail node={selectedNode} graphData={graphData} />
+          <NodeDetail
+            node={selectedNode}
+            graphData={activeMessage?.graphData ?? null}
+            enterprise={activeMessage?.report?.enterprise}
+          />
         </aside>
       </main>
+    </div>
+  );
+}
+
+/** 单条消息渲染：用户查询 + 图谱 + 报告 + 进度 */
+function MessageBlock({
+  entry,
+  isActive,
+  onNodeClick,
+}: {
+  entry: MessageEntry;
+  isActive: boolean;
+  onNodeClick: (node: GraphNode) => void;
+}) {
+  const { query, graphData, report, process, animated, loading, error } = entry;
+  const isOld = !isActive;
+
+  return (
+    <div className={`message-block ${isOld ? 'message-old' : 'message-active'}`}>
+      {/* 用户查询语句 */}
+      <div className="message-query">
+        <span className="message-query-label">你</span>
+        <span className="message-query-text">{query}</span>
+      </div>
+
+      {/* 旧消息的图谱/报告折叠为概要，活动消息完整渲染 */}
+      {isOld ? (
+        <MessageSnapshot entry={entry} />
+      ) : (
+        <div className="message-active-content">
+          {/* 左：图谱 */}
+          <div className="message-graph">
+            {graphData ? (
+              <GraphView
+                data={graphData}
+                loading={loading}
+                onNodeClick={onNodeClick}
+              />
+            ) : (
+              <div
+                style={{
+                  flex: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: 'var(--font-sm)',
+                  color: 'var(--color-text-tertiary)',
+                }}
+              >
+                {loading ? '正在生成图谱…' : '等待图谱数据…'}
+              </div>
+            )}
+          </div>
+
+          {/* 右：报告 + 进度 + 错误 */}
+          <div className="message-report-col">
+            <EnterpriseReportPanel
+              report={report}
+              streaming={loading}
+              progressText={buildProgressText(process)}
+              animated={animated}
+            />
+
+            {process && (
+              <div className="message-process">
+                <AgentProcess process={process} />
+              </div>
+            )}
+
+            {error && (
+              <div className="message-error">
+                {error}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** 旧消息折叠概要：企业名 + 风险等级 + 变更数 + 舆情数，避免 G6 重复渲染 */
+function MessageSnapshot({ entry }: { entry: MessageEntry }) {
+  const { report, graphData } = entry;
+  if (!report && !graphData) return null;
+
+  return (
+    <div className="message-snapshot">
+      {report ? (
+        <div className="message-snapshot-info">
+          <span className="message-snapshot-name">{report.enterprise.name}</span>
+          <span className={`report-grade report-grade-${report.riskAssessment.grade.toLowerCase()}`}>
+            {report.riskAssessment.score} 分 · {report.riskAssessment.grade}
+          </span>
+          {report.changes.length > 0 && (
+            <span className="message-snapshot-meta">{report.changes.length} 条变更</span>
+          )}
+          {report.opinions.length > 0 && (
+            <span className="message-snapshot-meta">{report.opinions.length} 条舆情</span>
+          )}
+        </div>
+      ) : graphData ? (
+        <div className="message-snapshot-info">
+          <span className="message-snapshot-meta">
+            图谱 {graphData.nodes.length} 节点 / {graphData.edges.length} 边
+          </span>
+        </div>
+      ) : null}
     </div>
   );
 }

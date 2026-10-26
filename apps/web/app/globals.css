@@ -177,10 +177,186 @@ select:focus-visible {
   overflow-y: auto;
 }
 
+/* ===== 消息列表区：可滚动，输入框固定底部 ===== */
 .app-center {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+}
+
+.app-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.app-empty-hint {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-sm);
+  color: var(--color-text-tertiary);
+}
+
+/* ===== 单条消息块 ===== */
+.message-block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  padding-bottom: var(--space-lg);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.message-old {
+  opacity: 0.7;
+}
+
+/* 活动消息：左右分栏（左图谱 | 右报告） */
+.message-active-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-md);
+  min-height: 480px;
+}
+
+.message-graph {
+  position: relative;
+  min-height: 400px;
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.message-report-col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  min-height: 400px;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+/* 报告区在右侧独立滚动时，去掉原来的 max-height 限制 */
+.message-report-col .report-panel {
+  flex: 1 0 auto;
+  max-height: none;
+  min-height: unset;
+  border-top: none;
+  padding: 0;
+  background: transparent;
+}
+
+.message-process {
+  max-height: 140px;
+  overflow-y: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-secondary);
+}
+
+.message-error {
+  padding: var(--space-sm) var(--space-md);
+  font-size: var(--font-sm);
+  color: var(--color-danger);
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radius-md);
+}
+
+/* 空格键激活时，图谱区光标变为 grab */
+.g6-space-panning,
+.g6-space-panning * {
+  cursor: grab !important;
+}
+
+.g6-space-panning:active,
+.g6-space-panning:active * {
+  cursor: grabbing !important;
+}
+
+/* 响应式：窄屏改为上下堆叠（仅手机竖屏） */
+@media (max-width: 500px) {
+  .message-active-content {
+    grid-template-columns: 1fr;
+  }
+  .message-graph {
+    min-height: 320px;
+  }
+  .message-report-col {
+    max-height: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .message-active-content {
+    min-height: unset;
+  }
+}
+
+/* 用户查询气泡 */
+.message-query {
+  display: flex;
+  gap: var(--space-sm);
+  align-items: flex-start;
+}
+
+.message-query-label {
+  flex-shrink: 0;
+  padding: 2px var(--space-xs);
+  font-size: var(--font-xs);
+  font-weight: 600;
+  color: var(--color-accent);
+  background: var(--color-accent-light);
+  border-radius: var(--radius-sm);
+}
+
+.message-query-text {
+  font-size: var(--font-sm);
+  color: var(--color-text-primary);
+  line-height: 1.6;
+}
+
+/* 旧消息快照 */
+.message-snapshot {
+  padding: var(--space-sm) var(--space-md);
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.message-snapshot-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  align-items: center;
+}
+
+.message-snapshot-name {
+  font-size: var(--font-sm);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.message-snapshot-meta {
+  font-size: var(--font-xs);
+  color: var(--color-text-tertiary);
+}
+
+.app-main {
+  display: grid;
+  grid-template-columns: var(--layout-sidebar-width) 1fr var(--layout-detail-width);
+  overflow: hidden;
+}
+
+.app-sidebar {
+  background-color: var(--color-bg-secondary);
+  border-right: 1px solid var(--color-border);
+  overflow-y: auto;
 }
 
 .app-detail {
