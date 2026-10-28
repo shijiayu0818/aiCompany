@@ -433,6 +433,7 @@ export default function HomePage() {
                   msg.id === latestDataMessage?.id ||
                   !(msg.report || msg.graphData)
                 }
+                selectedNode={selectedNode}
                 onNodeClick={setSelectedNode}
               />
             ))}
@@ -444,30 +445,37 @@ export default function HomePage() {
             loading={activeMessage?.loading ?? false}
           />
         </section>
-        <aside className="app-detail">
-          <NodeDetail
-            node={selectedNode}
-            graphData={latestDataMessage?.graphData ?? null}
-            enterprise={latestDataMessage?.report?.enterprise}
-          />
-        </aside>
       </main>
     </div>
   );
 }
 
-/** 单条消息渲染：用户查询 + 图谱 + 报告 + 进度 */
+/** 单条消息渲染：用户查询 + 报告（基本信息后嵌入图谱 + 详情） */
 function MessageBlock({
   entry,
   isActive,
+  selectedNode,
   onNodeClick,
 }: {
   entry: MessageEntry;
   isActive: boolean;
+  selectedNode: GraphNode | null;
   onNodeClick: (node: GraphNode) => void;
 }) {
   const { query, graphData, report, process, animated, loading, error, directResponse } = entry;
   const isOld = !isActive;
+  // 图谱放大展示（全屏浮层）
+  const [graphExpanded, setGraphExpanded] = useState(false);
+
+  // 浮层打开时支持 Esc 关闭
+  useEffect(() => {
+    if (!graphExpanded) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setGraphExpanded(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [graphExpanded]);
 
   // directResponse：跳过 Agent 调用的直接文本回复
   if (directResponse) {
@@ -498,9 +506,56 @@ function MessageBlock({
   // 加载占位：Supervisor 决策未到达时乐观展示；已明确不需要图谱则不占位
   const showGraphLoading =
     !showGraph && !graphFailed && loading && (wantsGraph || !process?.supervisor);
-  const hasGraphCol = showGraph || showGraphEmpty || showGraphLoading;
+  const showGraphRow = showGraph || showGraphEmpty || showGraphLoading;
   // 整体无结果：企业主体也未找到（报告与图谱都为空）
   const noResult = !loading && !report && !graphData && !error;
+
+  // 图谱小窗内容（正常图谱 / 加载中 / 无法搜索）
+  const graphBody = showGraph ? (
+    <GraphView data={graphData!} loading={loading} onNodeClick={onNodeClick} />
+  ) : showGraphLoading ? (
+    <div className="message-graph-status" role="status">
+      <span className="message-graph-spinner" aria-hidden="true" />
+      正在生成图谱…
+    </div>
+  ) : (
+    <div className="message-graph-status" role="status">
+      无法搜索该内容
+    </div>
+  );
+
+  // 基本信息结束后的图谱（左小块）+ 详情（右侧）
+  const graphAndDetail = showGraphRow ? (
+    <div className="message-graph-row">
+      <div className="message-graph-block">
+        <div className="message-graph-head">
+          <h4 className="report-block-title">关联图谱</h4>
+          {showGraph && (
+            <button
+              type="button"
+              className="message-graph-expand"
+              onClick={() => setGraphExpanded(true)}
+              aria-label="放大展示图谱"
+            >
+              放大
+            </button>
+          )}
+        </div>
+        <div className="message-graph-body">{graphBody}</div>
+      </div>
+
+      {/* 图谱查询失败或无数据时不展示详情 */}
+      {showGraph && (
+        <div className="message-detail-block">
+          <NodeDetail
+            node={selectedNode}
+            graphData={graphData}
+            enterprise={report?.enterprise}
+          />
+        </div>
+      )}
+    </div>
+  ) : null;
 
   return (
     <div className={`message-block ${isOld ? 'message-old' : 'message-active'}`}>
@@ -514,40 +569,14 @@ function MessageBlock({
       {isOld ? (
         <MessageSnapshot entry={entry} />
       ) : (
-        <div
-          className={`message-active-content ${hasGraphCol && !noResult ? '' : 'no-graph'}`}
-        >
-          {/* 左：图谱区（正常图谱 / 加载中 / 无结果） */}
-          {noResult ? null : graphData && !graphFailed ? (
-            <div className="message-graph">
-              <GraphView
-                data={graphData}
-                loading={loading}
-                onNodeClick={onNodeClick}
-              />
-            </div>
-          ) : showGraphLoading ? (
-            <div className="message-graph">
-              <div className="message-graph-status" role="status">
-                <span className="message-graph-spinner" aria-hidden="true" />
-                正在生成图谱…
-              </div>
-            </div>
-          ) : showGraphEmpty ? (
-            <div className="message-graph">
-              <div className="message-graph-status" role="status">
-                无法搜索该内容
-              </div>
-            </div>
-          ) : null}
-
-          {/* 右：报告 + 进度 + 错误 */}
+        <div className="message-active-content">
           <div className="message-report-col">
             <EnterpriseReportPanel
               report={report}
               streaming={loading}
               progressText={buildProgressText(process)}
               animated={animated}
+              afterBasicInfo={graphAndDetail}
             />
 
             {noResult && (
@@ -567,6 +596,40 @@ function MessageBlock({
                 {error}
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* 图谱放大浮层 */}
+      {graphExpanded && graphData && (
+        <div
+          className="graph-modal-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-label="图谱放大展示"
+          onClick={() => setGraphExpanded(false)}
+        >
+          <div className="graph-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="graph-modal-head">
+              <span className="graph-modal-title">
+                关联图谱 · {graphData.nodes.length} 节点 / {graphData.edges.length} 边
+              </span>
+              <button
+                type="button"
+                className="graph-modal-close"
+                onClick={() => setGraphExpanded(false)}
+                aria-label="关闭图谱放大展示"
+              >
+                关闭
+              </button>
+            </div>
+            <div className="graph-modal-body">
+              <GraphView
+                data={graphData}
+                loading={loading}
+                onNodeClick={onNodeClick}
+              />
+            </div>
           </div>
         </div>
       )}

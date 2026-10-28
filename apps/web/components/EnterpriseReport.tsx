@@ -4,7 +4,7 @@
 // 展示在图谱下方，数据由 graph-builder 汇总三个 Agent 输出
 // SSE 查询期间以打字机效果展示进度，报告到达后各板块渐次呈现
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import type {
   BusinessNeed,
   EnterpriseReport,
@@ -21,6 +21,8 @@ interface EnterpriseReportPanelProps {
   progressText?: string;
   /** 报告为本次查询新生成：标题打字机 + 板块渐入动画（会话恢复不动画） */
   animated?: boolean;
+  /** 基本信息板块之后插入的内容（图谱 + 详情） */
+  afterBasicInfo?: ReactNode;
 }
 
 /** 打字机效果：enabled 时逐字显示文本 */
@@ -80,14 +82,17 @@ export function EnterpriseReportPanel({
   streaming = false,
   progressText = '',
   animated = false,
+  afterBasicInfo,
 }: EnterpriseReportPanelProps) {
   const typedProgress = useTypewriter(progressText, streaming && !report);
   const typedTitle = useTypewriter(report?.enterprise.name ?? '', animated);
+  // 报告内容收起/展开（标题栏保持可见）
+  const [collapsed, setCollapsed] = useState(false);
 
   // 无报告且不在查询中：不渲染
   if (!report && !streaming) return null;
 
-  // 查询进行中且报告未到达：打字机进度提示
+  // 查询进行中且报告未到达：打字机进度提示（图谱占位插在进度之后）
   if (!report) {
     return (
       <section className="report-panel" aria-label="报告生成中">
@@ -97,6 +102,7 @@ export function EnterpriseReportPanel({
             <span className="report-caret" aria-hidden="true" />
           </span>
         </div>
+        {afterBasicInfo}
       </section>
     );
   }
@@ -135,14 +141,26 @@ export function EnterpriseReportPanel({
             企业整体查询结果 · 生成于 {formatTime(generatedAt)}
           </p>
         </div>
-        <span
-          className={`report-grade report-grade-${riskAssessment.grade.toLowerCase()}`}
-          aria-label={`风险等级 ${GRADE_LABELS[riskAssessment.grade]}`}
-        >
-          {GRADE_LABELS[riskAssessment.grade]}
-        </span>
+        <div className="report-header-actions">
+          <span
+            className={`report-grade report-grade-${riskAssessment.grade.toLowerCase()}`}
+            aria-label={`风险等级 ${GRADE_LABELS[riskAssessment.grade]}`}
+          >
+            {GRADE_LABELS[riskAssessment.grade]}
+          </span>
+          <button
+            type="button"
+            className="report-collapse-toggle"
+            onClick={() => setCollapsed((prev) => !prev)}
+            aria-expanded={!collapsed}
+            aria-label={collapsed ? '展开报告内容' : '收起报告内容'}
+          >
+            {collapsed ? '展开' : '收起'}
+          </button>
+        </div>
       </header>
 
+      {!collapsed && (
       <div className="report-sections">
         {/* 1. 企业信息 + 变更预警 */}
         <article {...cardProps(0)}>
@@ -198,8 +216,12 @@ export function EnterpriseReportPanel({
                       <tr key={change.id}>
                         <td>{change.type}</td>
                         <td>{change.date}</td>
-                        <td>{change.before ?? '—'}</td>
-                        <td>{change.after ?? '—'}</td>
+                        <td>
+                          <ClampedText value={change.before} />
+                        </td>
+                        <td>
+                          <ClampedText value={change.after} />
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -208,6 +230,11 @@ export function EnterpriseReportPanel({
             </div>
           )}
         </article>
+
+        {/* 基本信息结束后：图谱（左小块）+ 详情（右侧） */}
+        {afterBasicInfo && (
+          <div className="report-inline-extra">{afterBasicInfo}</div>
+        )}
 
         {/* 2. 关联企业 */}
         <article {...cardProps(1)}>
@@ -339,7 +366,18 @@ export function EnterpriseReportPanel({
           )}
         </article>
       </div>
+      )}
     </section>
+  );
+}
+
+/** 长文本单元格：超出宽度省略显示，悬浮 title 展示完整内容 */
+function ClampedText({ value }: { value?: string }) {
+  const text = value ?? '—';
+  return (
+    <span className="report-cell-clamp" title={text}>
+      {text}
+    </span>
   );
 }
 

@@ -167,7 +167,7 @@ select:focus-visible {
 
 .app-main {
   display: grid;
-  grid-template-columns: var(--layout-sidebar-width) 1fr var(--layout-detail-width);
+  grid-template-columns: var(--layout-sidebar-width) 1fr;
   overflow: hidden;
 }
 
@@ -181,6 +181,7 @@ select:focus-visible {
 .app-center {
   display: flex;
   flex-direction: column;
+  min-width: 0;
   overflow: hidden;
 }
 
@@ -207,6 +208,7 @@ select:focus-visible {
   display: flex;
   flex-direction: column;
   gap: var(--space-md);
+  min-width: 0;
   padding-bottom: var(--space-lg);
   border-bottom: 1px solid var(--color-border);
 }
@@ -215,43 +217,170 @@ select:focus-visible {
   opacity: 0.7;
 }
 
-/* 活动消息：左右分栏（左图谱 | 右报告） */
+/* 活动消息：单列自上而下（报告在前，基本信息后接图谱 + 详情） */
 .message-active-content {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  flex-direction: column;
   gap: var(--space-md);
-  min-height: 480px;
+  min-width: 0;
 }
 
-/* 本次查询未涉及图谱：单列布局，报告占满全宽 */
-.message-active-content.no-graph {
-  grid-template-columns: 1fr;
-  min-height: unset;
+/* 基本信息结束后嵌入的图谱行：左侧小窗 + 右侧详情 */
+.report-inline-extra {
+  grid-column: 1 / -1;
+  min-width: 0;
 }
 
-.message-graph {
-  position: relative;
-  min-height: 400px;
+.message-graph-row {
+  display: grid;
+  grid-template-columns: minmax(0, 420px) minmax(0, 1fr);
+  gap: var(--space-md);
+  align-items: start;
+}
+
+.message-graph-block {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
   background: var(--color-bg-primary);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   overflow: hidden;
 }
 
+.message-graph-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md) 0;
+}
+
+.message-graph-head .report-block-title {
+  margin-bottom: 0;
+}
+
+.message-graph-expand {
+  flex-shrink: 0;
+  padding: 2px var(--space-sm);
+  font-size: var(--font-xs);
+  color: var(--color-accent);
+  background: var(--color-accent-light);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+
+.message-graph-expand:hover {
+  border-color: var(--color-accent);
+}
+
+.message-graph-expand:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.message-graph-body {
+  position: relative;
+  height: 320px;
+  margin-top: var(--space-sm);
+}
+
+.message-graph-body .graph-container,
+.message-graph-body > div {
+  height: 100%;
+}
+
+/* 图谱旁的企业/节点详情 */
+.message-detail-block {
+  min-width: 0;
+  max-height: 320px;
+  overflow-y: auto;
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+/* 图谱放大浮层 */
+.graph-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-lg);
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.graph-modal {
+  display: flex;
+  flex-direction: column;
+  width: 90vw;
+  height: 85vh;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.graph-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding: var(--space-sm) var(--space-md);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.graph-modal-title {
+  font-size: var(--font-sm);
+  color: var(--color-text-secondary);
+}
+
+.graph-modal-close {
+  padding: 2px var(--space-md);
+  font-size: var(--font-sm);
+  color: var(--color-text-primary);
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.graph-modal-close:hover {
+  border-color: var(--color-accent);
+}
+
+.graph-modal-close:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.graph-modal-body {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+
+.graph-modal-body > div {
+  height: 100%;
+}
+
 .message-report-col {
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
-  min-height: 400px;
-  max-height: 70vh;
-  overflow-y: auto;
+  min-width: 0;
 }
 
-/* 报告区在右侧独立滚动时，去掉原来的 max-height 限制 */
+/* 消息内报告自然流动，滚动交给整个消息列表 */
 .message-report-col .report-panel {
   flex: 1 0 auto;
   max-height: none;
   min-height: unset;
+  overflow: visible;
   border-top: none;
   padding: 0;
   background: transparent;
@@ -327,20 +456,14 @@ select:focus-visible {
 
 /* 响应式：窄屏改为上下堆叠（仅手机竖屏） */
 @media (max-width: 500px) {
-  .message-active-content {
+  .message-graph-row {
     grid-template-columns: 1fr;
   }
-  .message-graph {
-    min-height: 320px;
+  .message-graph-body {
+    height: 260px;
   }
-  .message-report-col {
+  .message-detail-block {
     max-height: none;
-  }
-}
-
-@media (max-width: 768px) {
-  .message-active-content {
-    min-height: unset;
   }
 }
 
@@ -407,7 +530,7 @@ select:focus-visible {
 
 .app-main {
   display: grid;
-  grid-template-columns: var(--layout-sidebar-width) 1fr var(--layout-detail-width);
+  grid-template-columns: var(--layout-sidebar-width) 1fr;
   overflow: hidden;
 }
 
@@ -417,27 +540,31 @@ select:focus-visible {
   overflow-y: auto;
 }
 
-.app-detail {
-  background-color: var(--color-bg-secondary);
-  border-left: 1px solid var(--color-border);
-  overflow-y: auto;
-}
-
-/* ===== 响应式（窄屏折叠左右栏） ===== */
+/* ===== 响应式（窄屏折叠侧栏，详情已并入消息内容） ===== */
 @media (max-width: 1024px) {
-  /* 中等窗口收窄左右栏宽度，但保留右侧详情栏（节点详情是核心功能） */
+  /* 中等窗口收窄左侧历史会话栏 */
   .app-main {
-    grid-template-columns: 180px 1fr 260px;
+    grid-template-columns: 180px 1fr;
   }
 }
 
 @media (max-width: 768px) {
-  /* 窄屏只收起左侧历史会话，详情栏继续保留 */
+  /* 窄屏只收起左侧历史会话 */
   .app-main {
-    grid-template-columns: 1fr 240px;
+    grid-template-columns: 1fr;
   }
   .app-sidebar {
     display: none;
+  }
+}
+
+/* 窗口较窄时图谱小窗与详情上下堆叠 */
+@media (max-width: 900px) {
+  .message-graph-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .message-detail-block {
+    max-height: none;
   }
 }
 
@@ -458,6 +585,45 @@ select:focus-visible {
   justify-content: space-between;
   gap: var(--space-md);
   margin-bottom: var(--space-md);
+}
+
+/* 标题栏右上角操作区：风险等级 + 收起/展开 */
+.report-header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-shrink: 0;
+}
+
+.report-collapse-toggle {
+  padding: 2px var(--space-sm);
+  font-size: var(--font-xs);
+  color: var(--color-text-secondary);
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.report-collapse-toggle:hover {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.report-collapse-toggle:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* 变更记录长文本：超出宽度省略，悬浮 title 展示完整内容 */
+.report-cell-clamp {
+  display: inline-block;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: bottom;
 }
 
 .report-title {
@@ -506,6 +672,7 @@ select:focus-visible {
 }
 
 .report-card {
+  min-width: 0;
   padding: var(--space-md);
   background-color: var(--color-bg-primary);
   border: 1px solid var(--color-border);
@@ -888,7 +1055,8 @@ select:focus-visible {
 
 @media (max-width: 1024px) {
   .report-sections {
-    grid-template-columns: 1fr;
+    /* 必须用 minmax(0,1fr)：1fr 的隐式 min-content 会被图谱画布撑爆 */
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .report-panel {
