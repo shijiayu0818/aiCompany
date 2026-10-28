@@ -21,6 +21,12 @@ interface EnterpriseReportPanelProps {
   progressText?: string;
   /** 报告为本次查询新生成：标题打字机 + 板块渐入动画（会话恢复不动画） */
   animated?: boolean;
+  /** 各板块数据是否已返回：查询中未返回的板块先不渲染，避免出现「暂无」空状态 */
+  readiness?: {
+    company: boolean;
+    graph: boolean;
+    business: boolean;
+  };
   /** 基本信息板块之后插入的内容（图谱 + 详情） */
   afterBasicInfo?: ReactNode;
 }
@@ -45,6 +51,17 @@ function useTypewriter(text: string, enabled: boolean, speed = 45): string {
   }, [text, enabled, speed]);
 
   return displayed;
+}
+
+/** 逐字展示文本：enabled 时打字机效果，结束后直接展示完整文本 */
+function TypedText({ text, enabled }: { text: string; enabled: boolean }) {
+  const displayed = useTypewriter(text, enabled);
+  return (
+    <>
+      {displayed}
+      {enabled && <span className="report-caret" aria-hidden="true" />}
+    </>
+  );
 }
 
 const GRADE_LABELS: Record<string, string> = {
@@ -82,10 +99,16 @@ export function EnterpriseReportPanel({
   streaming = false,
   progressText = '',
   animated = false,
+  readiness,
   afterBasicInfo,
 }: EnterpriseReportPanelProps) {
   const typedProgress = useTypewriter(progressText, streaming && !report);
   const typedTitle = useTypewriter(report?.enterprise.name ?? '', animated);
+  // 查询中：新返回的长文本逐字展示；会话恢复 / 查询结束时不播放
+  const typing = streaming && animated;
+  // 板块就绪：查询中未返回的板块先不渲染（查询结束后全部展示，含空状态）
+  const sectionReady = (key: 'company' | 'graph' | 'business') =>
+    !streaming || (readiness?.[key] ?? true);
   // 报告内容收起/展开（标题栏保持可见）
   const [collapsed, setCollapsed] = useState(false);
 
@@ -135,7 +158,7 @@ export function EnterpriseReportPanel({
         <div>
           <h2 className="report-title">
             {typedTitle}
-            {animated && <span className="report-caret" aria-hidden="true" />}
+            {typing && <span className="report-caret" aria-hidden="true" />}
           </h2>
           <p className="report-subtitle">
             企业整体查询结果 · 生成于 {formatTime(generatedAt)}
@@ -163,6 +186,7 @@ export function EnterpriseReportPanel({
       {!collapsed && (
       <div className="report-sections">
         {/* 1. 企业信息 + 变更预警 */}
+        {sectionReady('company') && (
         <article {...cardProps(0)}>
           <h3 className="report-card-title">企业信息</h3>
           <dl className="report-info-grid">
@@ -175,7 +199,9 @@ export function EnterpriseReportPanel({
             <InfoItem label="所在地区" value={enterprise.region} />
           </dl>
           {enterprise.description && (
-            <p className="report-desc">{enterprise.description}</p>
+            <p className="report-desc">
+              <TypedText text={enterprise.description} enabled={typing} />
+            </p>
           )}
 
           <div className="report-sub-block">
@@ -230,6 +256,7 @@ export function EnterpriseReportPanel({
             </div>
           )}
         </article>
+        )}
 
         {/* 基本信息结束后：图谱（左小块）+ 详情（右侧） */}
         {afterBasicInfo && (
@@ -237,6 +264,7 @@ export function EnterpriseReportPanel({
         )}
 
         {/* 2. 关联企业 */}
+        {sectionReady('graph') && (
         <article {...cardProps(1)}>
           <h3 className="report-card-title">
             关联企业
@@ -273,8 +301,10 @@ export function EnterpriseReportPanel({
             <p className="report-empty">暂未发现关联企业</p>
           )}
         </article>
+        )}
 
         {/* 3. 风险等级 */}
+        {sectionReady('business') && (
         <article {...cardProps(2)}>
           <h3 className="report-card-title">风险等级</h3>
           <div className={`report-risk-summary report-risk-${riskAssessment.level}`}>
@@ -284,7 +314,9 @@ export function EnterpriseReportPanel({
                 {GRADE_LABELS[riskAssessment.grade]}
                 <span className="report-risk-index">风险指数 / 100</span>
               </p>
-              <p className="report-risk-text">{riskAssessment.summary}</p>
+              <p className="report-risk-text">
+                <TypedText text={riskAssessment.summary} enabled={typing} />
+              </p>
             </div>
           </div>
           <div className="report-risk-counts">
@@ -305,8 +337,10 @@ export function EnterpriseReportPanel({
             <p className="report-empty">未发现公开风险记录</p>
           )}
         </article>
+        )}
 
         {/* 4. 企业需求 */}
+        {sectionReady('business') && (
         <article {...cardProps(3)}>
           <h3 className="report-card-title">
             企业需求
@@ -322,8 +356,10 @@ export function EnterpriseReportPanel({
             <p className="report-empty">暂无公开的企业需求信息</p>
           )}
         </article>
+        )}
 
         {/* 5. 企业网络舆情 */}
+        {sectionReady('business') && (
         <article {...cardProps(4)}>
           <h3 className="report-card-title">企业网络舆情</h3>
           {opinions.length > 0 ? (
@@ -336,8 +372,10 @@ export function EnterpriseReportPanel({
             <p className="report-empty">暂无公开舆情信息</p>
           )}
         </article>
+        )}
 
         {/* 6. 财务情况 */}
+        {sectionReady('business') && (
         <article {...cardProps(5)}>
           <h3 className="report-card-title">财务情况</h3>
           {financials.length > 0 ? (
@@ -365,6 +403,7 @@ export function EnterpriseReportPanel({
             <p className="report-empty">暂无公开财务数据</p>
           )}
         </article>
+        )}
       </div>
       )}
     </section>

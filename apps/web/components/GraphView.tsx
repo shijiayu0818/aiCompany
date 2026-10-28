@@ -9,8 +9,6 @@ import type { Graph as G6Graph, NodeData } from '@antv/g6';
 
 interface GraphViewProps {
   data: GraphData | null;
-  /** 查询进行中：图谱区显示 loading 遮罩 */
-  loading?: boolean;
   onNodeClick?: (node: GraphNode) => void;
 }
 
@@ -74,7 +72,7 @@ function resolveNodeId(target: unknown, validIds: Set<string>): string | null {
   return null;
 }
 
-export function GraphView({ data, loading = false, onNodeClick }: GraphViewProps) {
+export function GraphView({ data, onNodeClick }: GraphViewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const graphRef = useRef<G6Graph | null>(null);
   const callbackRef = useRef(onNodeClick);
@@ -395,7 +393,7 @@ export function GraphView({ data, loading = false, onNodeClick }: GraphViewProps
           </button>
         </div>
       )}
-      {empty && !loading && (
+      {empty && (
         <div
           style={{
             position: 'absolute',
@@ -410,16 +408,6 @@ export function GraphView({ data, loading = false, onNodeClick }: GraphViewProps
           aria-label="图谱区域（暂无数据）"
         >
           输入查询后，企业关联关系图谱将在此展示
-        </div>
-      )}
-      {loading && (
-        <div
-          className="graph-loading"
-          role="status"
-          aria-label="图谱生成中"
-        >
-          <span className="graph-loading-spinner" aria-hidden="true" />
-          <span className="graph-loading-text">图谱生成中，请稍候…</span>
         </div>
       )}
     </div>

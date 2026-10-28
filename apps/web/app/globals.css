@@ -403,7 +403,7 @@ select:focus-visible {
   border-radius: var(--radius-md);
 }
 
-/* 图谱区状态提示：加载中 / 无结果（无法搜索该内容） */
+/* 图谱区状态提示：无结果（无法搜索该内容） */
 .message-graph-status {
   display: flex;
   flex-direction: column;
@@ -416,11 +416,23 @@ select:focus-visible {
   color: var(--color-text-tertiary);
 }
 
-/* 加载旋转指示器 */
-.message-graph-spinner {
-  width: 28px;
-  height: 28px;
-  border: 3px solid var(--color-border-light);
+/* 图谱生成中：一行轻提示，不用遮罩盖住图谱区域 */
+.message-graph-pending {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  font-size: var(--font-sm);
+  color: var(--color-accent);
+  background: var(--color-bg-primary);
+  border: 1px dashed var(--color-border-light);
+  border-radius: var(--radius-md);
+}
+
+.message-graph-pending-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--color-border-light);
   border-top-color: var(--color-accent);
   border-radius: 50%;
   animation: message-spin 0.8s linear infinite;
@@ -1068,40 +1080,6 @@ select:focus-visible {
   .report-panel {
     min-height: 120px;
     max-height: 38%;
-  }
-}
-
-/* ===== 查询进行中：图谱 loading 遮罩 ===== */
-.graph-loading {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-md);
-  background: rgba(15, 17, 23, 0.55);
-  backdrop-filter: blur(2px);
-  z-index: 5;
-}
-
-.graph-loading-spinner {
-  width: 36px;
-  height: 36px;
-  border: 3px solid var(--color-border-light);
-  border-top-color: var(--color-accent);
-  border-radius: 50%;
-  animation: graph-spin 0.9s linear infinite;
-}
-
-.graph-loading-text {
-  font-size: var(--font-sm);
-  color: var(--color-text-secondary);
-}
-
-@keyframes graph-spin {
-  to {
-    transform: rotate(360deg);
   }
 }
 

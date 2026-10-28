@@ -20,7 +20,8 @@ export { graphAdapter } from './adapters/graph-adapter';
 export { businessAdapter } from './adapters/business-adapter';
 
 // Graph Builder
-export { graphBuilderNode } from './graph-builder';
+export { graphBuilderNode, assembleReport } from './graph-builder';
+export type { AssembleReportInput, AssembleReportResult } from './graph-builder';
 
 // Agent Graph
 export { buildAgentGraph, createGraph } from './agent';

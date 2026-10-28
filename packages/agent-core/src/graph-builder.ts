@@ -131,21 +131,36 @@ function assessRisk(
   };
 }
 
-/**
- * 图谱组装器节点
- * 汇总 companyOutput / graphOutput / businessOutput，输出 currentGraph 与 currentReport
- */
-export async function graphBuilderNode(
-  state: SupervisorState,
-): Promise<Partial<SupervisorState>> {
-  const graphData = safeParse<GraphData>(state.graphOutput);
-  const company = parseCompanyOutput(state.companyOutput);
-  const business = parseBusinessOutput(state.businessOutput);
+/** 增量组装输入：输出为空表示该 Worker 尚未返回 */
+export interface AssembleReportInput {
+  companyOutput?: string;
+  graphOutput?: string;
+  businessOutput?: string;
+  /** 本次查询是否需要图谱（needsGraph=false 时清空图谱） */
+  needsGraph: boolean;
+  /** 上一轮图谱 / 报告（多轮增量合并用） */
+  currentGraph?: GraphData;
+  currentReport?: EnterpriseReport;
+}
 
-  let currentGraph = state.currentGraph;
+export interface AssembleReportResult {
+  currentGraph?: GraphData;
+  currentReport?: EnterpriseReport;
+}
+
+/**
+ * 组装图谱与报告（纯函数，可被增量调用）
+ * 仅使用已传入的输出组装，未传入的 Worker 数据视为尚未返回
+ */
+export function assembleReport(input: AssembleReportInput): AssembleReportResult {
+  const graphData = safeParse<GraphData>(input.graphOutput ?? '');
+  const company = parseCompanyOutput(input.companyOutput ?? '');
+  const business = parseBusinessOutput(input.businessOutput ?? '');
+
+  let currentGraph = input.currentGraph;
 
   // 本次查询不涉及图谱（needsGraph=false）时清空图谱，前端不再展示图谱区
-  if (!state.needsGraph) {
+  if (!input.needsGraph) {
     currentGraph = undefined;
   }
   // 1. 组装图谱
@@ -154,7 +169,7 @@ export async function graphBuilderNode(
     if (company) {
       for (const node of graphData.nodes) {
         if (node.type === 'enterprise' && company.name === node.name) {
-          node.detail = state.companyOutput;
+          node.detail = input.companyOutput ?? '';
         }
       }
     }
@@ -172,7 +187,7 @@ export async function graphBuilderNode(
       }
     }
 
-    currentGraph = mergeGraphData(state.currentGraph, graphData);
+    currentGraph = mergeGraphData(input.currentGraph, graphData);
   } else if (company) {
     // 没有图谱数据时，用企业信息构造单节点
     const singleNode: GraphData = {
@@ -181,21 +196,22 @@ export async function graphBuilderNode(
           id: company.id ?? 'unknown',
           type: 'enterprise',
           name: company.name,
-          detail: state.companyOutput,
+          detail: input.companyOutput ?? '',
         },
       ],
       edges: [],
     };
-    currentGraph = mergeGraphData(state.currentGraph, singleNode);
+    currentGraph = mergeGraphData(input.currentGraph, singleNode);
   }
 
   // 2. 汇总整体查询报告（缺少企业主体时无法生成报告）
-  const enterprise: Enterprise | undefined = company ?? state.currentReport?.enterprise;
+  const enterprise: Enterprise | undefined =
+    company ?? input.currentReport?.enterprise;
   if (!enterprise) {
     return { currentGraph };
   }
 
-  const existing = state.currentReport;
+  const existing = input.currentReport;
   const changes = company?.changeHistory ?? existing?.changes ?? [];
   const providedFlags = company?.riskFlags ?? existing?.flags ?? [];
   const risks = business?.risks ?? existing?.risks ?? [];
@@ -222,4 +238,21 @@ export async function graphBuilderNode(
   };
 
   return { currentGraph, currentReport: report };
+}
+
+/**
+ * 图谱组装器节点
+ * 汇总 companyOutput / graphOutput / businessOutput，输出 currentGraph 与 currentReport
+ */
+export async function graphBuilderNode(
+  state: SupervisorState,
+): Promise<Partial<SupervisorState>> {
+  return assembleReport({
+    companyOutput: state.companyOutput,
+    graphOutput: state.graphOutput,
+    businessOutput: state.businessOutput,
+    needsGraph: state.needsGraph,
+    currentGraph: state.currentGraph,
+    currentReport: state.currentReport,
+  });
 }

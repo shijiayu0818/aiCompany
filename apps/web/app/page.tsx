@@ -305,11 +305,16 @@ export default function HomePage() {
                 }));
                 break;
               case 'report':
+                // 增量报告：每个 Worker 返回后服务端都会下发一次，已有报告时继续更新
                 updateActiveMessage((prev) => ({
                   ...prev,
                   report: event.data,
-                  animated: true,
+                  // 首次到达才触发打字机 / 渐入，增量更新不重复播放动画
+                  animated: prev.report ? prev.animated : true,
                 }));
+                break;
+              case 'done':
+                updateActiveMessage((prev) => ({ ...prev, loading: false }));
                 break;
               case 'error':
                 updateActiveMessage((prev) => ({
@@ -503,28 +508,37 @@ function MessageBlock({
   // 无结果提示：查询失败立即提示；或本次需要图谱但查询结束仍无数据
   const showGraphEmpty =
     !showGraph && (graphFailed || (!loading && wantsGraph && !graphData));
-  // 加载占位：Supervisor 决策未到达时乐观展示；已明确不需要图谱则不占位
-  const showGraphLoading =
-    !showGraph && !graphFailed && loading && (wantsGraph || !process?.supervisor);
-  const showGraphRow = showGraph || showGraphEmpty || showGraphLoading;
+  // 图谱生成中：只给一行轻提示，不再用大块 loading 占位或遮罩盖住图谱区
+  const showGraphPending = !showGraph && !showGraphEmpty && loading;
+  const showGraphRow = showGraph || showGraphEmpty;
   // 整体无结果：企业主体也未找到（报告与图谱都为空）
   const noResult = !loading && !report && !graphData && !error;
 
-  // 图谱小窗内容（正常图谱 / 加载中 / 无法搜索）
+  // 图谱小窗内容（正常图谱 / 无法搜索）
   const graphBody = showGraph ? (
-    <GraphView data={graphData!} loading={loading} onNodeClick={onNodeClick} />
-  ) : showGraphLoading ? (
-    <div className="message-graph-status" role="status">
-      <span className="message-graph-spinner" aria-hidden="true" />
-      正在生成图谱…
-    </div>
+    <GraphView data={graphData!} onNodeClick={onNodeClick} />
   ) : (
     <div className="message-graph-status" role="status">
       无法搜索该内容
     </div>
   );
 
-  // 基本信息结束后的图谱（左小块）+ 详情（右侧）
+  // 报告板块就绪状态：查询中未返回的板块先不渲染，避免提前出现「暂无」空状态
+  const supervisor = process?.supervisor;
+  const stepReturned = (node: string) => {
+    const status = process?.steps.find((s) => s.node === node)?.status;
+    return status === 'done' || status === 'error' || status === 'skipped';
+  };
+  const readiness = {
+    company: stepReturned('company_node'),
+    graph:
+      !!supervisor && (!supervisor.needsGraph || stepReturned('graph_node')),
+    business:
+      !!supervisor &&
+      (!supervisor.needsBusiness || stepReturned('business_node')),
+  };
+
+  // 基本信息结束后的图谱（左小块）+ 详情（右侧）；未就绪时只显示一行提示
   const graphAndDetail = showGraphRow ? (
     <div className="message-graph-row">
       <div className="message-graph-block">
@@ -555,6 +569,11 @@ function MessageBlock({
         </div>
       )}
     </div>
+  ) : showGraphPending ? (
+    <div className="message-graph-pending" role="status">
+      <span className="message-graph-pending-spinner" aria-hidden="true" />
+      关联图谱生成中…
+    </div>
   ) : null;
 
   return (
@@ -576,6 +595,7 @@ function MessageBlock({
               streaming={loading}
               progressText={buildProgressText(process)}
               animated={animated}
+              readiness={readiness}
               afterBasicInfo={graphAndDetail}
             />
 
@@ -626,7 +646,6 @@ function MessageBlock({
             <div className="graph-modal-body">
               <GraphView
                 data={graphData}
-                loading={loading}
                 onNodeClick={onNodeClick}
               />
             </div>

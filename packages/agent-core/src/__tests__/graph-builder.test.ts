@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { graphBuilderNode } from '../graph-builder';
+import { assembleReport, graphBuilderNode } from '../graph-builder';
 import type { SupervisorState } from '../state';
 import type { GraphData } from '@ai/shared';
 
@@ -386,5 +386,63 @@ describe('graphBuilderNode', () => {
     expect(report.risks.map((risk) => risk.id)).toEqual(['risk9']);
     expect(report.riskAssessment.redCount).toBe(1);
     expect(report.riskAssessment.yellowCount).toBe(0);
+  });
+
+  describe('assembleReport（增量下发）', () => {
+    it('仅企业信息返回时即可生成报告与单节点图谱', () => {
+      const partial = assembleReport({
+        companyOutput: companyProfileJson,
+        needsGraph: true,
+      });
+
+      expect(partial.currentGraph!.nodes).toHaveLength(1);
+      expect(partial.currentReport!.enterprise.name).toBe('星辰智能科技集团');
+      // 尚未返回的板块保持为空，由前端按就绪状态隐藏
+      expect(partial.currentReport!.risks).toHaveLength(0);
+      expect(partial.currentReport!.needs).toHaveLength(0);
+      expect(partial.currentReport!.opinions).toHaveLength(0);
+      expect(partial.currentReport!.financials).toHaveLength(0);
+    });
+
+    it('图谱与工商资料返回后补全报告，结果与最终组装一致', () => {
+      const partial = assembleReport({
+        companyOutput: companyProfileJson,
+        graphOutput: makeGraphOutput(),
+        businessOutput: risksJson,
+        needsGraph: true,
+      });
+      const final = graphBuilderNode(
+        makeState({
+          companyOutput: companyProfileJson,
+          graphOutput: makeGraphOutput(),
+          businessOutput: risksJson,
+        }),
+      );
+
+      expect(partial.currentGraph!.nodes).toHaveLength(3);
+      expect(partial.currentReport!.relatedEnterprises).toHaveLength(1);
+      expect(partial.currentReport!.risks).toHaveLength(2);
+      return final.then((result) => {
+        expect(partial.currentReport!.riskAssessment).toEqual(
+          result.currentReport!.riskAssessment,
+        );
+      });
+    });
+
+    it('needsGraph=false 时清空图谱但仍生成报告', () => {
+      const partial = assembleReport({
+        companyOutput: companyProfileJson,
+        businessOutput: risksJson,
+        needsGraph: false,
+        currentGraph: {
+          nodes: [{ id: 'old', type: 'enterprise', name: '历史企业' }],
+          edges: [],
+        },
+      });
+
+      expect(partial.currentGraph).toBeUndefined();
+      expect(partial.currentReport!.enterprise.name).toBe('星辰智能科技集团');
+      expect(partial.currentReport!.risks).toHaveLength(2);
+    });
   });
 });
